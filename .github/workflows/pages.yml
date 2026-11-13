@@ -4,6 +4,8 @@ name: Website publiceren
 on:
   push:
     branches: [main]
+  schedule:
+    - cron: '*/15 6-21 * * *'   # agenda elk kwartier bijwerken (overdag)
   workflow_dispatch:
 
 permissions:
@@ -28,6 +30,12 @@ jobs:
           mkdir _site
           cp index.html 404.html robots.txt sitemap.xml llms.txt afspraak.html privacy.html _site/
           cp -r afspraak privacy interimmers assets .well-known _site/
+      - name: Bezette momenten uit de agenda
+        env:
+          AGENDA_ICS_URL: ${{ secrets.AGENDA_ICS_URL }}
+        run: |
+          if [ -n "$AGENDA_ICS_URL" ]; then pip install -q icalendar recurring-ical-events; fi
+          python3 .github/scripts/bezet.py _site/assets/bezet.json
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

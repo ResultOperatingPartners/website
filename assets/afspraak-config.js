@@ -12,11 +12,10 @@ window.AFSPRAAK_CONFIG = {
   // Naar dit adres gaan de aanvragen.
   email: 'dave@resultop.nl',
 
-  // TIJDELIJK: aanvragen versturen via FormSubmit (zolang er geen webhosting is).
-  // Na activatie krijg je van FormSubmit een code; vervang dan het e-mailadres
-  // hieronder door die code (https://formsubmit.co/CODE). Zet op '' zodra de
-  // TransIP-webhosting draait.
-  formsubmit: 'https://formsubmit.co/dave@resultop.nl',
+  // TIJDELIJK: aanvragen versturen via FormSubmit (geactiveerd op 13-11-2026).
+  // De code hieronder hoort bij je e-mailadres, zodat dat niet in de code staat.
+  // Zet op '' zodra de TransIP-webhosting draait.
+  formsubmit: 'https://formsubmit.co/0ec4c8424ed28e1bd973e4d7df255dc1',
 
 
   // Wanneer kunnen bezoekers een moment kiezen?

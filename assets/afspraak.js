@@ -42,8 +42,28 @@
   function unlock(id) { $(id).classList.remove('locked'); }
   function lock(id) { $(id).classList.add('locked'); }
 
-  // Tijden berekenen uit de instellingen (werkwijze AANVRAAG).
-  function localSlots() {
+  // Tijdstip (ms) van een datum + minuten in Nederlandse tijd.
+  function amsOffset(ms) {
+    try {
+      var tz = new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Amsterdam', timeZoneName: 'shortOffset' })
+        .formatToParts(new Date(ms)).find(function (x) { return x.type === 'timeZoneName'; }).value;
+      var m = /GMT([+-]\d+)/.exec(tz); if (m) return Number(m[1]) * 60;
+    } catch (e) { /* standaard +1 */ }
+    return 60;
+  }
+  function amsMs(iso, min) {
+    var p = iso.split('-').map(Number);
+    var guess = Date.UTC(p[0], p[1] - 1, p[2], Math.floor(min / 60), min % 60);
+    return guess - amsOffset(guess) * 60000;
+  }
+  function isoMetZone(iso, min) {
+    var off = amsOffset(amsMs(iso, min)), sign = off >= 0 ? '+' : '-'; off = Math.abs(off);
+    return iso + 'T' + hhmm(min) + ':00' + sign + pad(Math.floor(off / 60)) + ':' + pad(off % 60);
+  }
+
+  // Tijden berekenen uit de instellingen (werkwijze AANVRAAG), zonder bezette momenten uit de agenda.
+  function localSlots(bezet) {
+    bezet = bezet || [];
     var namen = { zondag: 0, maandag: 1, dinsdag: 2, woensdag: 3, donderdag: 4, vrijdag: 5, zaterdag: 6 };
     var bron = CFG.beschikbaarheid || { vrijdag: [['09:00', '17:00']] };
     var perDag = {};
@@ -63,8 +83,9 @@
       var slots = [];
       (perDag[d.getDay()] || []).forEach(function (b) {
         for (var s = toMin(b[0]); s + duur <= toMin(b[1]); s += stap) {
-          var t = new Date(d); t.setHours(Math.floor(s / 60), s % 60, 0, 0);
-          if (t.getTime() >= vroegst) slots.push(hhmm(s));
+          var begin = amsMs(iso, s), eind = amsMs(iso, s + duur);
+          var vrij = !bezet.some(function (b) { return b[0] < eind && b[1] > begin; });
+          if (begin >= vroegst && vrij) slots.push(hhmm(s));
         }
       });
       if (slots.length) days.push({ date: iso, slots: slots.filter(function (v, k, a) { return a.indexOf(v) === k; }).sort() });
@@ -94,7 +115,13 @@
         return r.json();
       })
       .then(function (data) { mode = 'agenda'; state.days = data.days || []; afterLoad(); })
-      .catch(function () { mode = 'aanvraag'; state.days = localSlots(); afterLoad(); });
+      .catch(function () {
+        mode = 'aanvraag';
+        fetch('/assets/bezet.json', { cache: 'no-store' })
+          .then(function (r) { return r.ok ? r.json() : {}; })
+          .catch(function () { return {}; })
+          .then(function (j) { state.days = localSlots((j && j.bezet) || []); afterLoad(); });
+      });
   }
 
   function afterLoad() {
@@ -191,6 +218,18 @@
     ]);
   }
 
+  // Link die de afspraak met één klik in Outlook (web) klaarzet.
+  function agendaLink(data) {
+    var start = toMin(state.time), duur = CFG.duurMinuten || 30;
+    var q = {
+      subject: 'Kennismaking ' + data.name + (data.company ? ' (' + data.company + ')' : '') + ' - ' + soort(),
+      startdt: isoMetZone(state.date, start), enddt: isoMetZone(state.date, start + duur),
+      body: 'Naam: ' + data.name + '\nE-mail: ' + data.email + (data.phone ? '\nTelefoon: ' + data.phone : '') + (data.message ? '\n\n' + data.message : ''),
+    };
+    if (state.type === 'teams') q.online = 'true';
+    return 'https://outlook.office.com/calendar/deeplink/compose?' + Object.keys(q).map(function (k) { return k + '=' + encodeURIComponent(q[k]); }).join('&');
+  }
+
   // Tijdelijk (zolang er geen eigen server is): versturen via FormSubmit, op de
   // achtergrond. De bezoeker blijft op deze pagina en ziet geen scherm van FormSubmit.
   function aanvraagViaFormSubmit(data, moment) {
@@ -202,6 +241,7 @@
       'Soort gesprek': soort(),
       'Voorkeursmoment': longDate(state.date) + ' om ' + state.time + ' uur',
       'Toelichting': data.message || '-',
+      'In mijn agenda zetten': agendaLink(data),
       '_subject': 'Aanvraag kennismaking: ' + soort() + ', ' + longDate(state.date) + ' ' + state.time + ' - ' + data.name,
       '_template': 'table',
       '_captcha': 'false',
