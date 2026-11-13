@@ -81,3 +81,9 @@ Tekst voor de bevestiging:
 > dave@resultop.nl · 06 46 74 85 49 · www.resultop.nl
 >
 > *Dit is een automatisch bericht. Hoe wij met uw gegevens omgaan leest u op www.resultop.nl/privacy.html.*
+
+## Agenda en formulier (GitHub Pages-versie)
+- **Bezette tijden:** je Outlook-agenda is gepubliceerd met alleen "Kan zien wanneer ik bezet ben". GitHub haalt de ICS-link (geheim `AGENDA_ICS_URL`) elk kwartier tussen 7 en 23 uur op en blokkeert die momenten op /afspraak/. Alleen begin- en eindtijden komen op de site.
+- **Aanvraag in je agenda:** elke aanvraagmail bevat de regel "In mijn agenda zetten". Klik erop, controleer en sla op; binnen een kwartier is dat moment op de site bezet.
+- **Formulier:** verstuurt via FormSubmit naar de anonieme code in `assets/afspraak-config.js`. Mails van FormSubmit kunnen in Ongewenste e-mail belanden: markeer `submissions@formsubmit.co` als veilige afzender.
+- **Agendakoppeling stoppen:** Outlook → Instellingen → Agenda → Gedeelde agenda's → publicatie ongedaan maken, en het geheim in GitHub verwijderen.
