@@ -18,8 +18,6 @@ window.AFSPRAAK_CONFIG = {
   // TransIP-webhosting draait.
   formsubmit: 'https://formsubmit.co/dave@resultop.nl',
 
-  // Automatische bevestiging aan de bezoeker (via FormSubmit).
-  bevestigingTekst: 'Dank voor uw aanvraag voor een kennismakingsgesprek met Result Operating Partners. Wij hebben uw aanvraag in goede orde ontvangen. Binnen één werkdag ontvangt u een persoonlijke bevestiging van het gekozen moment, of een voorstel voor een ander moment. Bij een Teams-gesprek volgt daarna een uitnodiging met de link. Vragen? Mail naar dave@resultop.nl of bel 06 46 74 85 49. Met vriendelijke groet, Dave Venmans, Result Operating Partners',
 
   // Wanneer kunnen bezoekers een moment kiezen?
   // Dagen: maandag, dinsdag, woensdag, donderdag, vrijdag, zaterdag, zondag

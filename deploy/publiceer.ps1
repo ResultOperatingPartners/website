@@ -35,8 +35,8 @@ if (Test-Path $stage) { Remove-Item $stage -Recurse -Force }
 $www = New-Item -ItemType Directory (Join-Path $stage 'www')
 $priv = New-Item -ItemType Directory (Join-Path $stage 'private')
 
-Copy-Item 'index.html', 'afspraak.html', 'privacy.html', '404.html', 'robots.txt', 'sitemap.xml' $www
-Copy-Item 'assets' $www -Recurse
+Copy-Item 'index.html', '404.html', 'robots.txt', 'sitemap.xml' $www
+Copy-Item 'afspraak', 'privacy', 'assets', '.well-known' $www -Recurse
 Copy-Item 'server\www\*' $www -Recurse -Force          # api, beheer, .htaccess
 Copy-Item 'server\private\lib.php' $priv
 

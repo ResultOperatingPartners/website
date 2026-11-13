@@ -191,9 +191,8 @@
     ]);
   }
 
-  // Tijdelijk (zolang er geen eigen server is): versturen via FormSubmit.
-  // De bezoeker ziet daarna kort een controle (captcha) van FormSubmit en komt
-  // terug op deze pagina. FormSubmit stuurt de bezoeker een bevestiging.
+  // Tijdelijk (zolang er geen eigen server is): versturen via FormSubmit, op de
+  // achtergrond. De bezoeker blijft op deze pagina en ziet geen scherm van FormSubmit.
   function aanvraagViaFormSubmit(data, moment) {
     var velden = {
       'Naam': data.name,
@@ -205,33 +204,29 @@
       'Toelichting': data.message || '-',
       '_subject': 'Aanvraag kennismaking: ' + soort() + ', ' + longDate(state.date) + ' ' + state.time + ' - ' + data.name,
       '_template': 'table',
-      '_next': location.origin + location.pathname + '?verzonden=1',
-      '_autoresponse': CFG.bevestigingTekst || '',
+      '_captcha': 'false',
       '_honey': '',
     };
-    try { sessionStorage.setItem('rop-moment', moment); } catch (e) { /* niet erg */ }
-    var f = el('form', { method: 'POST', action: CFG.formsubmit, hidden: '' });
-    Object.keys(velden).forEach(function (k) {
-      var i = el('input', { type: 'hidden', name: k });
-      i.value = velden[k];
-      f.appendChild(i);
-    });
-    document.body.appendChild(f);
-    var b = $('submit'); b.disabled = true; b.innerHTML = '<span class="spin"></span>Bezig met versturen…';
-    f.submit();
-  }
-
-  // Terug van FormSubmit: bevestiging tonen.
-  if (/[?&]verzonden=1/.test(location.search)) {
-    var m = '';
-    try { m = sessionStorage.getItem('rop-moment') || ''; sessionStorage.removeItem('rop-moment'); } catch (e) { /* niet erg */ }
-    setTimeout(function () {
-      showDone('Uw aanvraag is ontvangen', [
-        m ? 'Aanvraag voor: ' + m + '.' : 'Dank voor uw aanvraag.',
-        'U ontvangt een bevestiging per e-mail. Dave bevestigt het gesprek ' + (CFG.bevestigingTermijn || 'binnen één werkdag') + '. Geen e-mail ontvangen? Kijk dan ook in uw map met ongewenste e-mail.',
-      ]);
-      if (history.replaceState) history.replaceState(null, '', location.pathname);
-    }, 0);
+    var url = CFG.formsubmit.replace('formsubmit.co/', 'formsubmit.co/ajax/');
+    var b = $('submit'); var msg = $('msg');
+    b.disabled = true; b.innerHTML = '<span class="spin"></span>Bezig met versturen…';
+    fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(velden) })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { return { ok: r.ok, j: j }; }); })
+      .then(function (res) {
+        if (res.ok && String(res.j.success) === 'true') {
+          showDone('Uw aanvraag is ontvangen', [
+            'Aanvraag voor: ' + moment + '.',
+            'Dave bevestigt het gesprek persoonlijk per e-mail, ' + (CFG.bevestigingTermijn || 'binnen één werkdag') + '. Geen bericht ontvangen? Kijk dan ook in uw map met ongewenste e-mail.',
+          ]);
+          return;
+        }
+        throw new Error('mislukt');
+      })
+      .catch(function () {
+        msg.textContent = 'Het versturen is niet gelukt. Mail of bel ons gerust: ' + EMAIL + ' of 06 46 74 85 49.';
+        msg.className = 'msg err';
+      })
+      .finally(function () { b.innerHTML = 'Aanvraag versturen'; update(); });
   }
 
   // Wordt in tests vervangen; opent het e-mailprogramma van de bezoeker.
