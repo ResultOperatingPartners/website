@@ -36,7 +36,7 @@ $www = New-Item -ItemType Directory (Join-Path $stage 'www')
 $priv = New-Item -ItemType Directory (Join-Path $stage 'private')
 
 Copy-Item 'index.html', '404.html', 'robots.txt', 'sitemap.xml', 'llms.txt' $www
-Copy-Item 'afspraak', 'privacy', 'assets', '.well-known' $www -Recurse
+Copy-Item 'afspraak', 'privacy', 'interimmers', 'assets', '.well-known' $www -Recurse
 Copy-Item 'server\www\*' $www -Recurse -Force          # api, beheer, .htaccess
 Copy-Item 'server\private\lib.php' $priv
 

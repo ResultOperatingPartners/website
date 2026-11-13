@@ -77,7 +77,7 @@
     r.addEventListener('change', function () {
       state.type = r.value;
       $('phone').required = state.type === 'telefoon';
-      $('phone-opt').textContent = state.type === 'telefoon' ? '(nodig om u te bellen)' : '(optioneel)';
+      $('phone-opt').textContent = state.type === 'telefoon' ? '(nodig om je te bellen)' : '(optioneel)';
       unlock('s2');
       if (state.date) unlock('s3');
       if (state.time) unlock('s4');
@@ -100,7 +100,7 @@
   function afterLoad() {
     if (mode === 'aanvraag') {
       $('submit').textContent = 'Aanvraag versturen';
-      $('mode-note').textContent = 'Kies uw voorkeursmoment. Dave bevestigt het gesprek persoonlijk, ' + (CFG.bevestigingTermijn || 'binnen één werkdag') + '.';
+      $('mode-note').textContent = 'Kies je voorkeursmoment. Dave bevestigt het gesprek persoonlijk, ' + (CFG.bevestigingTermijn || 'binnen één werkdag') + '.';
       $('mode-note').hidden = false;
     }
     renderDates();
@@ -186,8 +186,8 @@
     ].filter(function (x) { return x !== null; }).join('\n');
     window.__openMail('mailto:' + EMAIL + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body));
     showDone('Nog één stap: verstuur de e-mail', [
-      'Uw e-mailprogramma is geopend met de aanvraag voor: ' + moment + '. Klik daar op Verzenden.',
-      'Dave bevestigt het gesprek ' + (CFG.bevestigingTermijn || 'binnen één werkdag') + '. Opende er geen e-mail? Stuur dan een bericht naar ' + EMAIL + ' met uw voorkeursmoment.',
+      'Je e-mailprogramma is geopend met de aanvraag voor: ' + moment + '. Klik daar op Verzenden.',
+      'Dave bevestigt het gesprek ' + (CFG.bevestigingTermijn || 'binnen één werkdag') + '. Opende er geen e-mail? Stuur dan een bericht naar ' + EMAIL + ' met je voorkeursmoment.',
     ]);
   }
 
@@ -214,9 +214,9 @@
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { return { ok: r.ok, j: j }; }); })
       .then(function (res) {
         if (res.ok && String(res.j.success) === 'true') {
-          showDone('Uw aanvraag is ontvangen', [
+          showDone('Je aanvraag is ontvangen', [
             'Aanvraag voor: ' + moment + '.',
-            'Dave bevestigt het gesprek persoonlijk per e-mail, ' + (CFG.bevestigingTermijn || 'binnen één werkdag') + '. Geen bericht ontvangen? Kijk dan ook in uw map met ongewenste e-mail.',
+            'Dave bevestigt het gesprek persoonlijk per e-mail, ' + (CFG.bevestigingTermijn || 'binnen één werkdag') + '. Geen bericht ontvangen? Kijk dan ook in je map met ongewenste e-mail.',
           ]);
           return;
         }
@@ -243,10 +243,10 @@
       consent: f.consent.checked, website: f.website.value, t: Date.now() - startedAt,
     };
     var problem =
-      data.name.length < 2 ? 'Vul uw naam in.' :
+      data.name.length < 2 ? 'Vul je naam in.' :
       !/^\S+@\S+\.\S+$/.test(data.email) ? 'Vul een geldig e-mailadres in.' :
-      (data.type === 'telefoon' && data.phone.replace(/\D/g, '').length < 8) ? 'Vul het telefoonnummer in waarop Dave u kan bellen.' :
-      !data.consent ? 'Geef toestemming voor het gebruik van uw gegevens.' : '';
+      (data.type === 'telefoon' && data.phone.replace(/\D/g, '').length < 8) ? 'Vul het telefoonnummer in waarop Dave je kan bellen.' :
+      !data.consent ? 'Geef toestemming voor het gebruik van je gegevens.' : '';
     if (problem) { msg.textContent = problem; msg.classList.add('err'); return; }
     if (data.website) return; // spamval
 
@@ -268,9 +268,9 @@
         })
         .then(function (res) {
           if (res.ok && res.j.ok) {
-            showDone('Uw aanvraag is ontvangen', [
+            showDone('Je aanvraag is ontvangen', [
               'Aanvraag voor: ' + moment + '.',
-              'U ontvangt een bevestiging per e-mail. Dave bevestigt het gesprek ' + (CFG.bevestigingTermijn || 'binnen één werkdag') + '. Geen e-mail ontvangen? Kijk dan ook in uw map met ongewenste e-mail.',
+              'Je ontvangt een bevestiging per e-mail. Dave bevestigt het gesprek ' + (CFG.bevestigingTermijn || 'binnen één werkdag') + '. Geen e-mail ontvangen? Kijk dan ook in je map met ongewenste e-mail.',
             ]);
             return;
           }
@@ -288,14 +288,14 @@
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { return { ok: r.ok, status: r.status, j: j }; }); })
       .then(function (res) {
         if (res.ok && res.j.ok) {
-          showDone('Uw afspraak staat gepland', [moment + '.', 'U ontvangt binnen enkele minuten een uitnodiging per e-mail. Geen e-mail ontvangen? Kijk dan ook even in uw map met ongewenste e-mail.']);
+          showDone('Je afspraak staat gepland', [moment + '.', 'Je ontvangt binnen enkele minuten een uitnodiging per e-mail. Geen e-mail ontvangen? Kijk dan ook even in je map met ongewenste e-mail.']);
           return;
         }
         msg.textContent = res.j.error || 'Het inplannen is niet gelukt. Probeer het opnieuw.';
         msg.classList.add('err');
         if (res.status === 409) { state.time = null; loadSlots(); lock('s3'); }
       })
-      .catch(function () { msg.textContent = 'Geen verbinding. Controleer uw internet en probeer het opnieuw.'; msg.classList.add('err'); })
+      .catch(function () { msg.textContent = 'Geen verbinding. Controleer je internet en probeer het opnieuw.'; msg.classList.add('err'); })
       .finally(function () { btn.innerHTML = 'Afspraak bevestigen'; update(); });
   });
 
