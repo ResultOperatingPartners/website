@@ -3,6 +3,9 @@
   // Niet toestaan dat de site in een frame van een andere site wordt getoond (clickjacking).
   if (window.top !== window.self) { try { window.top.location = window.self.location; } catch (e) { document.documentElement.style.display = 'none'; } }
 
+  var hdr = document.querySelector('.site');
+  if (hdr) { var sc = function () { hdr.classList.toggle('scrolled', window.scrollY > 10); }; window.addEventListener('scroll', sc, { passive: true }); sc(); }
+
   var jaar = document.getElementById('jaar');
   if (jaar) jaar.textContent = new Date().getFullYear();
 
