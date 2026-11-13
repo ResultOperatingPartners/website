@@ -1,0 +1,44 @@
+# Eenmalig (handmatig te starten): haalt de lettertypen op en zet ze in de repo,
+# zodat bezoekers geen verbinding meer maken met Google Fonts.
+name: Lettertypen ophalen
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  ophalen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Downloaden (alleen Latijnse tekens)
+        run: |
+          python3 - <<'PY'
+          import re, urllib.request, os, hashlib
+          url = "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Source+Sans+3:wght@400;600;700&display=swap"
+          ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36"
+          css = urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": ua})).read().decode()
+          os.makedirs("assets/fonts", exist_ok=True)
+          uit = []
+          for comment, blok in re.findall(r"/\* ([\w-]+) \*/\s*(@font-face \{.*?\})", css, re.S):
+              if comment not in ("latin", "latin-ext"):
+                  continue
+              fam = re.search(r"font-family: '([^']+)'", blok).group(1).replace(" ", "")
+              gew = re.search(r"font-weight: (\d+)", blok).group(1)
+              bron = re.search(r"url\((https://[^)]+\.woff2)\)", blok).group(1)
+              naam = f"{fam}-{gew}-{comment}.woff2"
+              with open(f"assets/fonts/{naam}", "wb") as f:
+                  f.write(urllib.request.urlopen(bron).read())
+              uit.append(blok.replace(bron, f"fonts/{naam}"))
+          open("assets/fonts.css", "w").write("/* Lokaal gehoste lettertypen (SIL Open Font License) */\n" + "\n".join(uit) + "\n")
+          print(len(uit), "lettertypen opgeslagen")
+          PY
+      - name: Opslaan in de repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/fonts assets/fonts.css
+          git commit -m "Lettertypen lokaal gehost" || echo "geen wijzigingen"
+          git push
