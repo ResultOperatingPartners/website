@@ -9,6 +9,16 @@ Bijgewerkt op 12 november 2026. Dit is wat al klaarstaat, en wat alleen jij kunt
 - **IP-adres** opgezocht (staat alleen op je laptop, niet in GitHub). De beheerpagina accepteert ook IPv6-bereiken.
 - **DNS van resultop.nl** bekeken. Er is niets gewijzigd; de bevindingen staan hieronder.
 
+## Status 13 november 2026: site online (tijdelijk via GitHub Pages)
+- **www.resultop.nl** draait op GitHub Pages (alleen de websitebestanden worden gepubliceerd; zie `.github/workflows/pages.yml`). resultop.nl stuurt door naar www.
+- **resultoperatingpartners.nl** en **.com** sturen door naar www.resultop.nl (aparte repo's `doorsturen-resultoperatingpartners-nl` en `-com`).
+- Alle drie domeinen zijn bij GitHub **geverifieerd** (niemand anders kan ze voor een GitHub-site claimen).
+- DNS: DNSSEC aan, CAA (alleen Let's Encrypt), DMARC `quarantine` op resultop.nl; de twee extra domeinen mogen geen mail versturen of ontvangen (null-MX, SPF `-all`, DMARC `reject`). De Microsoft 365-mail van resultop.nl is ongewijzigd.
+- Transferlock op resultoperatingpartners.com aangevraagd.
+- **Formulier**: tijdelijk via FormSubmit (zie `assets/afspraak-config.js`). Eerste aanvraag activeert het; daarna het adres vervangen door de code die FormSubmit mailt.
+- **Wijzigen**: push naar `main` → binnen ± 1 minuut live.
+- **Later naar TransIP-webhosting**: zet `formsubmit: ''`, publiceer met `deploy/publiceer.ps1` en zet de A/AAAA-records terug naar TransIP. Pas dan de CAA-records aan als TransIP een andere certificaatuitgever gebruikt.
+
 ## Wat jij nog moet doen (in deze volgorde)
 
 | # | Stap | Waar | Tijd |
