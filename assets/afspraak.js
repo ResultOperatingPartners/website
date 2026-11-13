@@ -222,13 +222,14 @@
   function systeemGegevens(data) {
     var start = toMin(state.time), duur = CFG.duurMinuten || 30;
     var schoon = function (v) { return String(v || '').replace(/[\[\]]/g, '').slice(0, 1500); };
-    return '[[ROP]]' + JSON.stringify({
+    return '[[ROP]]' + naarBase64(JSON.stringify({
       naam: schoon(data.name), email: schoon(data.email), telefoon: schoon(data.phone), organisatie: schoon(data.company),
       soort: state.type === 'teams' ? 'teams' : 'telefoon', soortTekst: soort(),
       start: state.date + 'T' + hhmm(start) + ':00', eind: state.date + 'T' + hhmm(start + duur) + ':00',
       moment: longDate(state.date) + ' om ' + state.time + ' uur', bericht: schoon(data.message),
-    }) + '[[/ROP]]';
+    })) + '[[/ROP]]';
   }
+  function naarBase64(t) { return btoa(unescape(encodeURIComponent(t))); }
 
   // Link die de afspraak met één klik in Outlook (web) klaarzet.
   function agendaLink(data) {
