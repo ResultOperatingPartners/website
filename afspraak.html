@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; form-action 'self' https://formsubmit.co; base-uri 'self'; object-src 'none'; upgrade-insecure-requests">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+
+<title>Plan een kennismaking — Result Operating Partners</title>
+<meta name="description" content="Plan direct een vrijblijvend kennismakingsgesprek met Dave Venmans van Result Operating Partners, via Microsoft Teams of telefonisch.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#14213d">
+<link rel="icon" href="assets/favicon.png"><link rel="apple-touch-icon" href="assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#14213d;--navy-2:#1f3157;--gold:#c9a227;--gold-d:#a8861a;--bg:#f6f4ee;--card:#fff;--fg:#14213d;--muted:#5d6878;--line:#e6e1d3;--err:#b42318;--ok:#1f7a4d;--r:6px;
+--head:'Playfair Display',Georgia,serif;--body:'Source Sans 3',system-ui,-apple-system,'Segoe UI',sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--body);color:var(--fg);background:var(--bg);line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.top{background:var(--navy);padding:18px 24px}
+.top-in{max-width:960px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.top img{height:40px;width:auto;display:block}
+.top a.back{color:#dfe4ee;text-decoration:none;font-size:15px}
+.top a.back:hover{color:#fff}
+.hero{background:var(--navy);color:#fff;padding:28px 24px 96px}
+.hero-in{max-width:960px;margin:0 auto}
+.eyebrow{font-size:12px;letter-spacing:.18em;text-transform:uppercase;font-weight:700;color:var(--gold)}
+h1{font-family:var(--head);font-size:clamp(30px,5vw,46px);line-height:1.1;margin:12px 0 12px;font-weight:700}
+.hero p{color:#b9c2d3;font-size:18px;max-width:620px}
+main{max-width:960px;margin:-64px auto 64px;padding:0 24px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:0 20px 50px rgba(20,33,61,.08);padding:36px}
+.step{padding:28px 0;border-top:1px solid var(--line)}
+.step:first-child{padding-top:0;border-top:0}
+.step-h{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.num{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--gold);color:var(--gold-d);display:grid;place-items:center;font-weight:700;font-size:14px;flex:none}
+.step h2{font-family:var(--head);font-size:22px;font-weight:700}
+.step.locked{opacity:.45;pointer-events:none}
+.types{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.choice{position:relative;display:block;cursor:pointer}
+.choice input{position:absolute;opacity:0;pointer-events:none}
+.choice .box{display:flex;gap:14px;align-items:flex-start;border:1.5px solid var(--line);border-radius:var(--r);padding:18px;transition:border-color .15s,box-shadow .15s,background .15s;height:100%}
+.choice:hover .box{border-color:#cfc6ad}
+.choice input:checked + .box{border-color:var(--navy);box-shadow:0 0 0 3px rgba(201,162,39,.25);background:#fbfaf6}
+.choice input:focus-visible + .box{outline:2px solid var(--gold);outline-offset:2px}
+.ic{width:40px;height:40px;border-radius:50%;background:var(--navy);display:grid;place-items:center;flex:none}
+.ic svg{width:20px;height:20px;stroke:var(--gold);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.box strong{display:block;font-size:17px}
+.box span{color:var(--muted);font-size:14.5px}
+.dates{display:flex;gap:10px;overflow-x:auto;padding:4px 2px 12px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+.date{flex:none;scroll-snap-align:start;min-width:84px;text-align:center;border:1.5px solid var(--line);border-radius:var(--r);padding:12px 10px;background:#fff;cursor:pointer;font:inherit;color:inherit;transition:border-color .15s,background .15s}
+.date:hover{border-color:#cfc6ad}
+.date .wd{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+.date .d{display:block;font-family:var(--head);font-size:26px;font-weight:700;line-height:1.2}
+.date .m{display:block;font-size:13px;color:var(--muted)}
+.date[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:#fff}
+.date[aria-pressed="true"] .wd,.date[aria-pressed="true"] .m{color:#d6dbe6}
+.times{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:10px}
+.time{border:1.5px solid var(--line);border-radius:var(--r);padding:11px 6px;background:#fff;font:inherit;font-weight:600;color:inherit;cursor:pointer;transition:border-color .15s,background .15s}
+.time:hover{border-color:#cfc6ad}
+.time[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:#fff}
+.hint{color:var(--muted);font-size:15px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.field{display:grid;gap:6px}
+.field.full{grid-column:1/-1}
+label.l{font-size:14px;font-weight:600}
+label.l small{font-weight:400;color:var(--muted)}
+input[type=text],input[type=email],input[type=tel],textarea{font:inherit;font-size:16px;padding:12px 14px;border:1.5px solid var(--line);border-radius:var(--r);background:#fff;color:var(--fg);width:100%}
+input:focus,textarea:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 3px rgba(201,162,39,.25)}
+textarea{min-height:110px;resize:vertical}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.consent{display:flex;gap:10px;align-items:flex-start;font-size:14.5px;color:var(--muted)}
+.consent input{margin-top:4px;width:18px;height:18px;accent-color:var(--navy);flex:none}
+.summary{background:var(--bg);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;margin:22px 0 18px;font-size:15.5px}
+.summary b{color:var(--fg)}
+.btn{text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:10px;background:var(--gold);color:var(--navy);border:0;border-radius:999px;padding:15px 30px;font:inherit;font-weight:700;font-size:16px;cursor:pointer;transition:background .15s,transform .15s}
+.btn:hover{background:#d8b33a;transform:translateY(-1px)}
+.btn[disabled]{opacity:.5;cursor:not-allowed;transform:none}
+.msg{margin-top:14px;font-size:15px}
+.msg.err{color:var(--err)}
+.loading{display:flex;align-items:center;gap:10px;color:var(--muted)}
+.spin{width:18px;height:18px;border:2px solid var(--line);border-top-color:var(--navy);border-radius:50%;animation:s .8s linear infinite}
+@keyframes s{to{transform:rotate(360deg)}}
+.done{text-align:center;padding:24px 8px}
+.done .check{width:64px;height:64px;border-radius:50%;background:var(--navy);display:grid;place-items:center;margin:0 auto 18px}
+.done .check svg{width:30px;height:30px;stroke:var(--gold);fill:none;stroke-width:2.5}
+.done h2{font-family:var(--head);font-size:30px;margin-bottom:10px}
+.done p{color:var(--muted);max-width:520px;margin:0 auto 8px}
+.secure{display:flex;gap:8px;align-items:center;justify-content:center;color:var(--muted);font-size:13.5px;margin-top:22px}
+.secure svg{width:15px;height:15px;stroke:var(--muted);fill:none;stroke-width:2}
+footer{text-align:center;color:var(--muted);font-size:13.5px;padding:0 24px 40px}
+footer a{text-decoration:underline;text-underline-offset:3px}
+[hidden]{display:none!important}
+@media(max-width:640px){
+ .hero{padding:20px 20px 84px}.hero p{font-size:16px}
+ main{padding:0 12px;margin-top:-60px}
+ .panel{padding:22px 18px}
+ .types,.grid{grid-template-columns:1fr}
+ .top{padding:14px 20px}.top img{height:32px}
+ .btn{width:100%}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="aanbouw" role="note" style="background:#0e1830;color:#dfe4ee;font:500 14px/1.4 'Source Sans 3',system-ui,sans-serif;text-align:center;padding:9px 16px;border-bottom:1px solid rgba(201,162,39,.35)"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#c9a227;margin-right:8px;vertical-align:1px"></span>Deze website is in aanbouw. Nog niet alles werkt zoals het straks zal werken; neem bij vragen gerust <a href="mailto:dave@resultop.nl" style="color:#c9a227">direct contact</a> op.</div>
+<header class="top"><div class="top-in">
+  <a href="index.html" aria-label="Terug naar de homepage"><img src="assets/logo-licht.png" alt="Result Operating Partners" width="1375" height="409"></a>
+  <a class="back" href="index.html">← Terug naar de site</a>
+</div></header>
+
+<section class="hero"><div class="hero-in">
+  <span class="eyebrow">Kennismaking</span>
+  <h1>Plan een gesprek met Dave Venmans</h1>
+  <p>Kies een moment voor een vrijblijvend en vertrouwelijk gesprek van 30 minuten. Dave bevestigt het gesprek persoonlijk.</p>
+</div></section>
+
+<main>
+<div class="panel">
+<form id="form" novalidate>
+  <section class="step" id="s1">
+    <div class="step-h"><span class="num">1</span><h2>Hoe wilt u spreken?</h2></div>
+    <div class="types" role="radiogroup" aria-label="Soort gesprek">
+      <label class="choice"><input type="radio" name="type" value="teams"><span class="box">
+        <span class="ic"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="M16 10l6-3v10l-6-3"/></svg></span>
+        <span><strong>Via Microsoft Teams</strong><span>Videogesprek; u ontvangt de link in de bevestiging.</span></span></span></label>
+      <label class="choice"><input type="radio" name="type" value="telefoon"><span class="box">
+        <span class="ic"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg></span>
+        <span><strong>Telefonisch</strong><span>Dave belt u op het nummer dat u opgeeft.</span></span></span></label>
+    </div>
+  </section>
+
+  <section class="step locked" id="s2">
+    <div class="step-h"><span class="num">2</span><h2>Kies een dag</h2></div>
+    <p class="hint" id="mode-note" hidden style="margin:-6px 0 14px"></p>
+    <div id="dates-wrap"><div class="loading"><span class="spin"></span>Beschikbaarheid ophalen…</div></div>
+  </section>
+
+  <section class="step locked" id="s3">
+    <div class="step-h"><span class="num">3</span><h2>Kies een tijd</h2></div>
+    <div id="times-wrap"><p class="hint">Kies eerst een dag.</p></div>
+  </section>
+
+  <section class="step locked" id="s4">
+    <div class="step-h"><span class="num">4</span><h2>Uw gegevens</h2></div>
+    <div class="grid">
+      <div class="field"><label class="l" for="name">Naam</label><input type="text" id="name" name="name" autocomplete="name" maxlength="100" required></div>
+      <div class="field"><label class="l" for="company">Organisatie <small>(optioneel)</small></label><input type="text" id="company" name="company" autocomplete="organization" maxlength="120"></div>
+      <div class="field"><label class="l" for="email">E-mailadres</label><input type="email" id="email" name="email" autocomplete="email" maxlength="254" required></div>
+      <div class="field"><label class="l" for="phone">Telefoonnummer <small id="phone-opt">(optioneel)</small></label><input type="tel" id="phone" name="phone" autocomplete="tel" maxlength="20"></div>
+      <div class="field full"><label class="l" for="message">Waar wilt u het over hebben? <small>(optioneel)</small></label><textarea id="message" name="message" maxlength="1500"></textarea></div>
+      <div class="hp" aria-hidden="true"><label for="website">Website</label><input type="text" id="website" name="website" tabindex="-1" autocomplete="off"></div>
+      <label class="consent full field"><input type="checkbox" id="consent" name="consent"><span>Ik ga ermee akkoord dat Result Operating Partners mijn gegevens gebruikt om deze afspraak in te plannen en contact met mij op te nemen. De gegevens worden niet gedeeld met derden. Lees de <a href="privacy.html" target="_blank" rel="noopener">privacyverklaring</a>.</span></label>
+    </div>
+    <div class="summary" id="summary" hidden></div>
+    <button class="btn" type="submit" id="submit" disabled>Afspraak bevestigen</button>
+    <p class="msg" id="msg" role="alert" aria-live="polite"></p>
+  </section>
+</form>
+
+<div class="done" id="done" hidden>
+  <div class="check"><svg viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg></div>
+  <h2 id="done-title">Uw afspraak staat gepland</h2>
+  <p id="done-text"></p>
+  <p id="done-extra"></p>
+  <p style="margin-top:22px"><a class="btn" href="index.html">Terug naar de site</a></p>
+</div>
+
+<p class="secure"><svg viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Uw gegevens worden versleuteld verstuurd en alleen gebruikt voor uw afspraak</p>
+</div>
+</main>
+<footer>© <span id="jaar">2026</span> Result Operating Partners · Liever mailen? <a href="mailto:dave@resultop.nl">dave@resultop.nl</a> · <a href="privacy.html">Privacy</a></footer>
+<script src="assets/afspraak-config.js" defer></script>
+<script src="assets/afspraak.js" defer></script>
+</body>
+</html>

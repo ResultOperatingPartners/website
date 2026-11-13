@@ -1,0 +1,108 @@
+{
+  "routes": [
+    {
+      "route": "/.auth/login/github",
+      "statusCode": 404
+    },
+    {
+      "route": "/.auth/login/twitter",
+      "statusCode": 404
+    },
+    {
+      "route": "/api/slots",
+      "methods": [
+        "GET"
+      ],
+      "allowedRoles": [
+        "eigenaar"
+      ]
+    },
+    {
+      "route": "/api/book",
+      "methods": [
+        "POST"
+      ],
+      "allowedRoles": [
+        "eigenaar"
+      ]
+    },
+    {
+      "route": "/api/*",
+      "statusCode": 404
+    },
+    {
+      "route": "/README.md",
+      "statusCode": 404
+    },
+    {
+      "route": "/INSTALLATIE.md",
+      "statusCode": 404
+    },
+    {
+      "route": "/.vscode/*",
+      "statusCode": 404
+    },
+    {
+      "route": "/BEHEER.md",
+      "statusCode": 404
+    },
+    {
+      "route": "/TRANSIP.md",
+      "statusCode": 404
+    },
+    {
+      "route": "/STAPPEN.md",
+      "statusCode": 404
+    },
+    {
+      "route": "/deploy/*",
+      "statusCode": 404
+    },
+    {
+      "route": "/server/*",
+      "statusCode": 404
+    },
+    {
+      "route": "/geen-toegang.html",
+      "allowedRoles": [
+        "anonymous",
+        "authenticated"
+      ]
+    },
+    {
+      "route": "/*",
+      "allowedRoles": [
+        "eigenaar"
+      ]
+    }
+  ],
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": [
+      "/assets/*",
+      "/api/*",
+      "*.{png,jpg,jpeg,svg,ico,css,js,json}",
+      "/.auth/*"
+    ]
+  },
+  "globalHeaders": {
+    "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests",
+    "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=()"
+  },
+  "platform": {
+    "apiRuntime": "node:20"
+  },
+  "responseOverrides": {
+    "401": {
+      "redirect": "/.auth/login/aad?post_login_redirect_uri=/",
+      "statusCode": 302
+    },
+    "403": {
+      "rewrite": "/geen-toegang.html"
+    }
+  }
+}

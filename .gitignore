@@ -1,0 +1,7 @@
+node_modules/
+api/node_modules/
+local.settings.json
+api/local.settings.json
+.env
+deploy/config.php
+deploy/publiceer.config.psd1

@@ -1,0 +1,308 @@
+(function () {
+  'use strict';
+  // Twee werkwijzen:
+  //  1. AGENDA: er draait een beveiligde server (/api). Vrije tijden komen uit Outlook,
+  //     de afspraak wordt direct ingepland en de bezoeker krijgt een uitnodiging.
+  //  2. AANVRAAG: geen server (nu). Tijden komen uit assets/afspraak-config.js en de
+  //     bezoeker verstuurt een kant-en-klare e-mail naar het ingestelde adres.
+  var API = '/api';
+  var CFG = window.AFSPRAAK_CONFIG || {};
+  var EMAIL = CFG.email || 'dave@resultop.nl';
+  var mode = 'agenda';
+  var startedAt = Date.now();
+  var state = { type: null, date: null, time: null, days: [] };
+  var $ = function (id) { return document.getElementById(id); };
+  var DAG = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'];
+  var DAG_LANG = ['zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag'];
+  var MND = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
+  var MND_LANG = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'];
+
+  $('jaar').textContent = new Date().getFullYear();
+  document.querySelectorAll('a[href^="mailto:dave@resultop.nl"]').forEach(function (a) {
+    a.href = a.href.replace('dave@resultop.nl', EMAIL);
+    if (a.textContent === 'dave@resultop.nl') a.textContent = EMAIL;
+  });
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function isoOf(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  function parts(iso) {
+    var p = iso.split('-').map(Number);
+    var wd = new Date(Date.UTC(p[0], p[1] - 1, p[2])).getUTCDay();
+    return { y: p[0], m: p[1] - 1, d: p[2], wd: wd };
+  }
+  function longDate(iso) { var p = parts(iso); return DAG_LANG[p.wd] + ' ' + p.d + ' ' + MND_LANG[p.m]; }
+  function toMin(t) { var a = String(t).split(':'); return Number(a[0]) * 60 + Number(a[1]); }
+  function hhmm(m) { return pad(Math.floor(m / 60)) + ':' + pad(m % 60); }
+  function el(tag, attrs, html) {
+    var e = document.createElement(tag);
+    Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+    if (html != null) e.innerHTML = html;
+    return e;
+  }
+  function unlock(id) { $(id).classList.remove('locked'); }
+  function lock(id) { $(id).classList.add('locked'); }
+
+  // Tijden berekenen uit de instellingen (werkwijze AANVRAAG).
+  function localSlots() {
+    var namen = { zondag: 0, maandag: 1, dinsdag: 2, woensdag: 3, donderdag: 4, vrijdag: 5, zaterdag: 6 };
+    var bron = CFG.beschikbaarheid || { vrijdag: [['09:00', '17:00']] };
+    var perDag = {};
+    Object.keys(bron).forEach(function (k) {
+      var n = namen[k.toLowerCase()];
+      if (n != null) perDag[n] = bron[k] || [];
+    });
+    var duur = CFG.duurMinuten || 30, stap = CFG.stapMinuten || 30;
+    var vroegst = Date.now() + (CFG.minimaalUrenVooraf == null ? 24 : CFG.minimaalUrenVooraf) * 3600000;
+    var horizon = CFG.maximaalDagenVooruit || 60;
+    var uit = CFG.nietBeschikbaar || [];
+    var days = [];
+    var d = new Date(); d.setHours(0, 0, 0, 0);
+    for (var i = 0; i <= horizon; i++, d.setDate(d.getDate() + 1)) {
+      var iso = isoOf(d);
+      if (uit.indexOf(iso) !== -1) continue;
+      var slots = [];
+      (perDag[d.getDay()] || []).forEach(function (b) {
+        for (var s = toMin(b[0]); s + duur <= toMin(b[1]); s += stap) {
+          var t = new Date(d); t.setHours(Math.floor(s / 60), s % 60, 0, 0);
+          if (t.getTime() >= vroegst) slots.push(hhmm(s));
+        }
+      });
+      if (slots.length) days.push({ date: iso, slots: slots.filter(function (v, k, a) { return a.indexOf(v) === k; }).sort() });
+    }
+    return days;
+  }
+
+  // Stap 1: soort gesprek
+  document.querySelectorAll('input[name=type]').forEach(function (r) {
+    r.addEventListener('change', function () {
+      state.type = r.value;
+      $('phone').required = state.type === 'telefoon';
+      $('phone-opt').textContent = state.type === 'telefoon' ? '(nodig om u te bellen)' : '(optioneel)';
+      unlock('s2');
+      if (state.date) unlock('s3');
+      if (state.time) unlock('s4');
+      update();
+    });
+  });
+
+  // Stap 2: dagen ophalen — eerst de beveiligde server, anders de instellingen.
+  function loadSlots() {
+    fetch(API + '/slots', { headers: { Accept: 'application/json' }, cache: 'no-store' })
+      .then(function (r) {
+        var ct = r.headers.get('content-type') || '';
+        if (!r.ok || ct.indexOf('json') === -1) throw new Error('geen server');
+        return r.json();
+      })
+      .then(function (data) { mode = 'agenda'; state.days = data.days || []; afterLoad(); })
+      .catch(function () { mode = 'aanvraag'; state.days = localSlots(); afterLoad(); });
+  }
+
+  function afterLoad() {
+    if (mode === 'aanvraag') {
+      $('submit').textContent = 'Aanvraag versturen';
+      $('mode-note').textContent = 'Kies uw voorkeursmoment. Dave bevestigt het gesprek persoonlijk, ' + (CFG.bevestigingTermijn || 'binnen één werkdag') + '.';
+      $('mode-note').hidden = false;
+    }
+    renderDates();
+  }
+
+  function renderDates() {
+    var wrap = $('dates-wrap');
+    wrap.innerHTML = '';
+    if (!state.days.length) {
+      wrap.innerHTML = '<p class="hint">Er zijn op dit moment geen vrije momenten. Mail gerust naar <a href="mailto:' + EMAIL + '?subject=Kennismaking">' + EMAIL + '</a>.</p>';
+      return;
+    }
+    var row = el('div', { class: 'dates', role: 'group', 'aria-label': 'Beschikbare dagen' });
+    state.days.forEach(function (day) {
+      var p = parts(day.date);
+      var b = el('button', { type: 'button', class: 'date', 'aria-pressed': 'false', 'data-date': day.date, 'aria-label': longDate(day.date) },
+        '<span class="wd">' + DAG[p.wd] + '</span><span class="d">' + p.d + '</span><span class="m">' + MND[p.m] + '</span>');
+      b.addEventListener('click', function () { selectDate(day.date); });
+      row.appendChild(b);
+    });
+    wrap.appendChild(row);
+  }
+
+  function selectDate(date) {
+    state.date = date; state.time = null;
+    document.querySelectorAll('.date').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.date === date)); });
+    var day = state.days.find(function (d) { return d.date === date; });
+    var wrap = $('times-wrap');
+    wrap.innerHTML = '';
+    var grid = el('div', { class: 'times', role: 'group', 'aria-label': 'Beschikbare tijden op ' + longDate(date) });
+    (day ? day.slots : []).forEach(function (t) {
+      var b = el('button', { type: 'button', class: 'time', 'aria-pressed': 'false', 'data-time': t }, t);
+      b.addEventListener('click', function () { selectTime(t); });
+      grid.appendChild(b);
+    });
+    wrap.appendChild(grid);
+    unlock('s3'); lock('s4');
+    update();
+  }
+
+  function selectTime(t) {
+    state.time = t;
+    document.querySelectorAll('.time').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.time === t)); });
+    unlock('s4');
+    update();
+    if (window.matchMedia('(max-width:640px)').matches) $('s4').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function soort() { return state.type === 'teams' ? 'Teams-gesprek' : 'Telefonisch gesprek'; }
+
+  function update() {
+    var s = $('summary');
+    if (state.type && state.date && state.time) {
+      s.hidden = false;
+      s.innerHTML = '<b>' + soort() + '</b> op <b>' + longDate(state.date) + '</b> om <b>' + state.time + ' uur</b> (' + (CFG.duurMinuten || 30) + ' minuten)';
+    } else { s.hidden = true; }
+    $('submit').disabled = !(state.type && state.date && state.time);
+  }
+
+  function showDone(title, lines) {
+    $('form').hidden = true; $('done').hidden = false;
+    $('done-title').textContent = title;
+    $('done-text').textContent = lines[0];
+    $('done-extra').textContent = lines[1] || '';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+
+  // Noodroute (bijv. lokaal testen zonder server): aanvraag via het e-mailprogramma van de bezoeker.
+  function aanvraagPerMail(data, moment) {
+    var subject = 'Aanvraag kennismaking: ' + soort() + ', ' + longDate(state.date) + ' ' + state.time + ' - ' + data.name;
+    var body = [
+      'Beste Dave,', '',
+      'Graag plan ik een kennismakingsgesprek in.', '',
+      'Voorkeursmoment: ' + longDate(state.date) + ' om ' + state.time + ' uur',
+      'Soort gesprek: ' + soort(),
+      'Naam: ' + data.name,
+      data.company ? 'Organisatie: ' + data.company : null,
+      'E-mail: ' + data.email,
+      data.phone ? 'Telefoon: ' + data.phone : null,
+      data.message ? '\nToelichting:\n' + data.message : null,
+      '', 'Met vriendelijke groet,', data.name,
+    ].filter(function (x) { return x !== null; }).join('\n');
+    window.__openMail('mailto:' + EMAIL + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body));
+    showDone('Nog één stap: verstuur de e-mail', [
+      'Uw e-mailprogramma is geopend met de aanvraag voor: ' + moment + '. Klik daar op Verzenden.',
+      'Dave bevestigt het gesprek ' + (CFG.bevestigingTermijn || 'binnen één werkdag') + '. Opende er geen e-mail? Stuur dan een bericht naar ' + EMAIL + ' met uw voorkeursmoment.',
+    ]);
+  }
+
+  // Tijdelijk (zolang er geen eigen server is): versturen via FormSubmit.
+  // De bezoeker ziet daarna kort een controle (captcha) van FormSubmit en komt
+  // terug op deze pagina. FormSubmit stuurt de bezoeker een bevestiging.
+  function aanvraagViaFormSubmit(data, moment) {
+    var velden = {
+      'Naam': data.name,
+      'email': data.email,
+      'Organisatie': data.company || '-',
+      'Telefoon': data.phone || '-',
+      'Soort gesprek': soort(),
+      'Voorkeursmoment': longDate(state.date) + ' om ' + state.time + ' uur',
+      'Toelichting': data.message || '-',
+      '_subject': 'Aanvraag kennismaking: ' + soort() + ', ' + longDate(state.date) + ' ' + state.time + ' - ' + data.name,
+      '_template': 'table',
+      '_next': location.origin + location.pathname + '?verzonden=1',
+      '_autoresponse': CFG.bevestigingTekst || '',
+      '_honey': '',
+    };
+    try { sessionStorage.setItem('rop-moment', moment); } catch (e) { /* niet erg */ }
+    var f = el('form', { method: 'POST', action: CFG.formsubmit, hidden: '' });
+    Object.keys(velden).forEach(function (k) {
+      var i = el('input', { type: 'hidden', name: k });
+      i.value = velden[k];
+      f.appendChild(i);
+    });
+    document.body.appendChild(f);
+    var b = $('submit'); b.disabled = true; b.innerHTML = '<span class="spin"></span>Bezig met versturen…';
+    f.submit();
+  }
+
+  // Terug van FormSubmit: bevestiging tonen.
+  if (/[?&]verzonden=1/.test(location.search)) {
+    var m = '';
+    try { m = sessionStorage.getItem('rop-moment') || ''; sessionStorage.removeItem('rop-moment'); } catch (e) { /* niet erg */ }
+    setTimeout(function () {
+      showDone('Uw aanvraag is ontvangen', [
+        m ? 'Aanvraag voor: ' + m + '.' : 'Dank voor uw aanvraag.',
+        'U ontvangt een bevestiging per e-mail. Dave bevestigt het gesprek ' + (CFG.bevestigingTermijn || 'binnen één werkdag') + '. Geen e-mail ontvangen? Kijk dan ook in uw map met ongewenste e-mail.',
+      ]);
+      if (history.replaceState) history.replaceState(null, '', location.pathname);
+    }, 0);
+  }
+
+  // Wordt in tests vervangen; opent het e-mailprogramma van de bezoeker.
+  window.__openMail = function (url) { window.location.href = url; };
+
+  $('form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var msg = $('msg'); msg.textContent = ''; msg.className = 'msg';
+    var f = e.target;
+    var data = {
+      type: state.type, date: state.date, time: state.time,
+      name: f.name.value.trim(), company: f.company.value.trim(), email: f.email.value.trim(),
+      phone: f.phone.value.trim(), message: f.message.value.trim(),
+      consent: f.consent.checked, website: f.website.value, t: Date.now() - startedAt,
+    };
+    var problem =
+      data.name.length < 2 ? 'Vul uw naam in.' :
+      !/^\S+@\S+\.\S+$/.test(data.email) ? 'Vul een geldig e-mailadres in.' :
+      (data.type === 'telefoon' && data.phone.replace(/\D/g, '').length < 8) ? 'Vul het telefoonnummer in waarop Dave u kan bellen.' :
+      !data.consent ? 'Geef toestemming voor het gebruik van uw gegevens.' : '';
+    if (problem) { msg.textContent = problem; msg.classList.add('err'); return; }
+    if (data.website) return; // spamval
+
+    var moment = soort() + ' op ' + longDate(state.date) + ' om ' + state.time + ' uur';
+
+    if (mode === 'aanvraag' && CFG.formsubmit) {
+      aanvraagViaFormSubmit(data, moment);
+      return;
+    }
+
+    if (mode === 'aanvraag') {
+      var btnA = $('submit');
+      btnA.disabled = true; btnA.innerHTML = '<span class="spin"></span>Bezig met versturen…';
+      fetch('/api/aanvraag.php', { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(data) })
+        .then(function (r) {
+          var ct = r.headers.get('content-type') || '';
+          if (ct.indexOf('json') === -1) throw new Error('geen server');
+          return r.json().then(function (j) { return { ok: r.ok, j: j }; });
+        })
+        .then(function (res) {
+          if (res.ok && res.j.ok) {
+            showDone('Uw aanvraag is ontvangen', [
+              'Aanvraag voor: ' + moment + '.',
+              'U ontvangt een bevestiging per e-mail. Dave bevestigt het gesprek ' + (CFG.bevestigingTermijn || 'binnen één werkdag') + '. Geen e-mail ontvangen? Kijk dan ook in uw map met ongewenste e-mail.',
+            ]);
+            return;
+          }
+          msg.textContent = res.j.error || 'Het versturen is niet gelukt. Probeer het opnieuw.';
+          msg.classList.add('err');
+        })
+        .catch(function () { aanvraagPerMail(data, moment); })
+        .finally(function () { btnA.innerHTML = 'Aanvraag versturen'; update(); });
+      return;
+    }
+
+    var btn = $('submit');
+    btn.disabled = true; btn.innerHTML = '<span class="spin"></span>Bezig met inplannen…';
+    fetch(API + '/book', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { return { ok: r.ok, status: r.status, j: j }; }); })
+      .then(function (res) {
+        if (res.ok && res.j.ok) {
+          showDone('Uw afspraak staat gepland', [moment + '.', 'U ontvangt binnen enkele minuten een uitnodiging per e-mail. Geen e-mail ontvangen? Kijk dan ook even in uw map met ongewenste e-mail.']);
+          return;
+        }
+        msg.textContent = res.j.error || 'Het inplannen is niet gelukt. Probeer het opnieuw.';
+        msg.classList.add('err');
+        if (res.status === 409) { state.time = null; loadSlots(); lock('s3'); }
+      })
+      .catch(function () { msg.textContent = 'Geen verbinding. Controleer uw internet en probeer het opnieuw.'; msg.classList.add('err'); })
+      .finally(function () { btn.innerHTML = 'Afspraak bevestigen'; update(); });
+  });
+
+  loadSlots();
+})();

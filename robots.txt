@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /beheer/
+Disallow: /api/
+
+Sitemap: https://www.resultop.nl/sitemap.xml

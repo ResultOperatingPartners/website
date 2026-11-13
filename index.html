@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="nl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; form-action 'self' https://formsubmit.co; base-uri 'self'; object-src 'none'; upgrade-insecure-requests">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+
+<link rel="icon" href="assets/favicon.png"><link rel="apple-touch-icon" href="assets/favicon.png">
+<meta name="theme-color" content="#14213d">
+<title>Result Operating Partners — Van strategie naar resultaat</title>
+<meta name="description" content="Result Operating Partners werkt naast ondernemers, directies en investeerders om plannen daadwerkelijk uit te voeren: van strategie naar meetbaar resultaat.">
+<link rel="canonical" href="https://www.resultop.nl/">
+<meta property="og:type" content="website"><meta property="og:locale" content="nl_NL">
+<meta property="og:site_name" content="Result Operating Partners">
+<meta property="og:title" content="Result Operating Partners — Van strategie naar resultaat">
+<meta property="og:description" content="Hands-on operating partner voor ondernemers, directies en investeerders: van strategie naar meetbaar resultaat.">
+<meta property="og:url" content="https://www.resultop.nl/">
+<meta property="og:image" content="https://www.resultop.nl/assets/deelbeeld.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}
+body{font-family:var(--body);color:var(--fg);background:var(--bg);line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}.wrap{max-width:1160px;margin:0 auto;padding:0 24px}
+h1,h2,h3{font-family:var(--head);font-weight:var(--hw);letter-spacing:var(--hls,-.01em);line-height:1.1}
+.test{background:#111;color:#fff;font:12px/1.4 system-ui,sans-serif;text-align:center;padding:6px}
+.test a{text-decoration:underline}
+.site{position:sticky;top:0;z-index:20;backdrop-filter:blur(8px)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:72px}
+.brand{display:flex;align-items:center;gap:12px;font-weight:700}
+.mark{width:36px;height:36px;display:grid;place-items:center;background:var(--accent);color:var(--accent-fg);font-weight:800;border-radius:calc(var(--radius) / 2)}
+.bname em{font-style:normal;font-weight:400;opacity:.7;margin-left:4px}
+.site nav{display:flex;gap:28px;align-items:center;font-size:15px}
+.btn{display:inline-block;padding:13px 24px;border-radius:999px;font-weight:600;font-size:15px;border:1px solid transparent;cursor:pointer;font-family:inherit;transition:transform .2s,opacity .2s}
+.btn:hover{transform:translateY(-2px)}.btn.solid{background:var(--accent);color:var(--accent-fg)}.btn.ghost{background:transparent}
+.site .btn.solid{color:var(--accent-fg)}
+.eyebrow{display:inline-block;font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:var(--accent);margin-bottom:18px}
+section{padding:100px 0}
+.hero{background:var(--hero-bg);color:var(--hero-fg);padding:110px 0 120px}
+.hero .eyebrow{color:var(--accent)}
+.hero h1{font-size:clamp(38px,6vw,68px);margin-bottom:24px}
+.hero p{font-size:19px;color:var(--hero-muted);max-width:600px;margin-bottom:36px}
+.ctas{display:flex;gap:12px;flex-wrap:wrap}
+.hero-split .hero-in{display:grid;grid-template-columns:1.2fr 1fr;gap:60px;align-items:center}
+.hero-center .hero-in{text-align:center}.hero-center p{margin-left:auto;margin-right:auto}.hero-center .ctas{justify-content:center}
+.hero-center h1{max-width:900px;margin-left:auto;margin-right:auto}.hero-center .hero-art{display:none}
+.hero-big .hero-art{display:none}.hero-big h1{max-width:1000px}
+.art-bars{display:flex;align-items:flex-end;gap:14px;height:300px;padding:30px;border-radius:var(--radius);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12)}
+.art-bars span{flex:1;background:var(--accent);border-radius:calc(var(--radius) / 2) calc(var(--radius) / 2) 0 0;opacity:.35}
+.art-bars span:last-child{opacity:1}
+.art-circles{position:relative;aspect-ratio:1;max-width:400px;margin-left:auto}
+.art-circles span{position:absolute;border-radius:50%;background:var(--accent)}
+.art-circles span:nth-child(1){inset:0;opacity:.15}.art-circles span:nth-child(2){inset:18%;opacity:.3}.art-circles span:nth-child(3){inset:36%;opacity:1}
+.art-dash{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:26px;box-shadow:0 24px 60px rgba(15,31,61,.12);display:grid;gap:16px}
+.art-dash .kpi{display:flex;justify-content:space-between;font-size:14px;color:var(--muted)}
+.art-dash .bar{height:10px;border-radius:5px;background:var(--surface);overflow:hidden}.art-dash .bar i{display:block;height:100%;background:var(--accent);border-radius:5px}
+.head{max-width:680px;margin-bottom:56px}.head h2{font-size:clamp(30px,4vw,46px);margin-bottom:16px}.head p{color:var(--muted);font-size:18px}
+.diensten{background:var(--surface)}
+.svc-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.card{background:var(--bg);border:1px solid var(--line);border-radius:var(--radius);padding:34px 28px;transition:transform .25s}
+.card:hover{transform:translateY(-4px)}.card .n{display:block;color:var(--accent);font-weight:700;font-size:14px;margin-bottom:18px}
+.card h3,.svc-list h3,.svc-num h3{font-size:21px;margin-bottom:10px}.card p,.svc-list p,.svc-num p{color:var(--muted);font-size:16px}
+.svc-list article{display:grid;grid-template-columns:80px 1fr 1.4fr;gap:30px;padding:30px 0;border-top:1px solid var(--line);align-items:baseline}
+.svc-list article:last-child{border-bottom:1px solid var(--line)}.svc-list .n{color:var(--accent);font-weight:700}
+.svc-num{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.svc-num article{padding:30px;border-radius:var(--radius);background:var(--bg);border:1px solid var(--line)}
+.svc-num .n{font-family:var(--head);font-size:56px;line-height:1;color:var(--accent);display:block;margin-bottom:20px}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:30px;list-style:none}
+.steps li{border-top:2px solid var(--accent);padding-top:22px}.steps b{display:block;font-family:var(--head);font-size:13px;letter-spacing:.14em;color:var(--accent);margin-bottom:8px}
+.steps h3{font-size:20px;margin-bottom:8px}.steps p{color:var(--muted);font-size:15px}
+.why-grid{display:grid;grid-template-columns:1fr 1fr;gap:70px;align-items:center}
+.quote{font-family:var(--head);font-size:clamp(26px,3vw,36px);line-height:1.3;border-left:3px solid var(--accent);padding-left:28px;margin-top:30px}
+.why{list-style:none;display:grid;gap:16px}.why li{padding:22px 24px;border-radius:var(--radius);background:var(--surface);border:1px solid var(--line)}
+.why strong{display:block;font-size:17px;margin-bottom:2px}.why span{color:var(--muted);font-size:15px}
+.team-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.avatar{aspect-ratio:1;overflow:hidden;border-radius:var(--radius);background:var(--surface);border:1px solid var(--line);display:grid;place-items:center;font-family:var(--head);font-size:40px;color:var(--muted);margin-bottom:16px}
+.team-grid h3{font-size:19px}.team-grid p{color:var(--muted);font-size:15px}
+.contact{background:var(--surface)}
+.cbox{display:grid;grid-template-columns:1fr 1fr;gap:60px}
+.cbox h2{font-size:clamp(28px,3.5vw,42px);margin-bottom:16px}.cbox>div>p{color:var(--muted);margin-bottom:26px}
+.cinfo{display:grid;gap:12px;color:var(--muted);font-size:15px}.cinfo b{color:var(--fg)}
+form{display:grid;gap:14px}label{font-size:14px;font-weight:600;display:grid;gap:6px}
+input,textarea{font:inherit;padding:13px 15px;border-radius:calc(var(--radius) / 2);border:1px solid var(--line);background:var(--bg);color:var(--fg)}
+textarea{min-height:110px}
+.note{font-size:13px;color:var(--muted)}
+footer{padding:44px 0;font-size:14px;color:var(--muted);border-top:1px solid var(--line)}
+.foot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px}
+
+
+.plink{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:15px;color:var(--fg);border-bottom:1px solid transparent;transition:border-color .2s}.plink:hover{border-color:var(--accent)}.plink svg{width:18px;height:18px;fill:none;stroke:var(--accent);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.solo{display:grid;grid-template-columns:1fr 1.15fr;gap:72px;align-items:center}
+.solo-photo{position:relative;border-radius:var(--radius);overflow:hidden;aspect-ratio:4/5;box-shadow:0 30px 60px rgba(20,33,61,.18)}
+.solo-photo img{width:100%;height:100%;object-fit:cover;display:block}
+.solo-photo::after{content:"";position:absolute;inset:16px;border:1px solid rgba(201,162,39,.6);pointer-events:none}
+.solo h2{font-size:clamp(34px,4vw,50px);margin-bottom:8px}
+.solo-role{color:var(--accent);font-weight:600;letter-spacing:.12em;text-transform:uppercase;font-size:13px;margin-bottom:26px}
+.solo-body>p:not(.solo-role){color:var(--muted);font-size:17px;margin-bottom:16px;max-width:560px}
+.solo-links{display:flex;flex-wrap:wrap;gap:16px 28px;align-items:center;margin-top:30px}
+
+.contact{background:#14213d;color:#fff}
+.cta{display:grid;grid-template-columns:1.3fr 1fr;gap:60px;align-items:center}
+.cta h2{font-size:clamp(30px,4vw,46px);margin-bottom:16px;color:#fff}
+.cta p{color:#b9c2d3;font-size:18px;max-width:580px}
+.cta-actions{display:grid;gap:18px;justify-items:start;padding-left:48px;border-left:1px solid rgba(201,162,39,.4)}
+.contact .plink{color:#fff;display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:15px;border-bottom:1px solid transparent}
+.contact .plink:hover{border-color:var(--accent)}
+
+.logo{height:44px;width:auto;display:block}
+.foot-logo{height:38px;width:auto}.foot{align-items:center}.foot a{text-decoration:underline;text-underline-offset:3px}
+.menu-btn{display:none;background:none;border:0;width:44px;height:44px;padding:10px;cursor:pointer;flex-direction:column;justify-content:center;gap:5px}
+.menu-btn span{display:block;height:2px;background:#fff;border-radius:2px;transition:transform .25s,opacity .25s}
+body.menu-open .menu-btn span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+body.menu-open .menu-btn span:nth-child(2){opacity:0}
+body.menu-open .menu-btn span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+@media(max-width:760px){
+ .nav{height:64px}.logo{height:34px}
+ .menu-btn{display:flex}
+ .site{backdrop-filter:none;-webkit-backdrop-filter:none}
+ .site nav{position:fixed;top:var(--hdr,64px);left:0;right:0;bottom:0;background:#14213d;flex-direction:column;align-items:stretch;gap:0;padding:12px 24px 32px;opacity:0;visibility:hidden;transform:translateY(-10px);transition:opacity .25s,transform .25s,visibility .25s;overflow-y:auto}
+ body.menu-open .site nav{opacity:1;visibility:visible;transform:none}
+ body.menu-open{overflow:hidden}
+ .site nav a:not(.btn){display:block;padding:18px 0;font-size:20px;border-bottom:1px solid rgba(255,255,255,.08)}
+ .site nav .btn{margin-top:28px;text-align:center;padding:16px}
+ .hero{padding:64px 0 72px}.hero h1{font-size:36px}.hero p{font-size:17px}
+ .ctas{flex-direction:column;align-items:stretch}.ctas .btn{text-align:center}
+ .art-bars{height:180px;padding:20px}
+ section{padding:64px 0}
+ .head{margin-bottom:36px}.head p{font-size:16px}
+ .card{padding:26px 22px}
+ .svc-cards,.svc-num,.team-grid,.steps{grid-template-columns:1fr;gap:16px}
+ .steps{gap:26px}
+ .why-grid{gap:36px}.quote{font-size:22px;padding-left:20px}
+ .solo-photo{max-width:none;aspect-ratio:4/4.4}
+ .solo-photo img{object-position:center 15%}
+ .solo-links{flex-direction:column;align-items:stretch}.solo-links .btn{text-align:center}
+ .cta-actions{justify-items:stretch}.cta-actions .btn{text-align:center}
+ .foot{flex-direction:column;align-items:flex-start;gap:14px}
+}
+@media(max-width:900px){.cta{grid-template-columns:1fr;gap:36px}.cta-actions{padding-left:0;border-left:0}}
+@media(max-width:900px){.solo{grid-template-columns:1fr;gap:40px}.solo-photo{max-width:420px}}
+@media(max-width:900px){.hero-split .hero-in,.why-grid,.cbox{grid-template-columns:1fr}.svc-cards,.svc-num,.team-grid,.steps{grid-template-columns:1fr 1fr}
+.svc-list article{grid-template-columns:50px 1fr}.svc-list article p{grid-column:2}.art-circles{margin:0 auto;max-width:260px}}
+@media(max-width:640px){.svc-cards,.svc-num,.team-grid,.steps{grid-template-columns:1fr}section{padding:72px 0}}
+
+  :root{--bg:#fff;--fg:#14213d;--muted:#5d6878;--accent:#c9a227;--accent-fg:#14213d;--surface:#f6f4ee;--line:#e6e1d3;
+  --hero-bg:#14213d;--hero-fg:#fff;--hero-muted:#b9c2d3;--head:'Playfair Display',Georgia,serif;--body:'Source Sans 3',sans-serif;--radius:4px;--hw:700}
+  .site{background:#14213d}.site a{color:#dfe4ee}.brand .mark{border-radius:50%;border:2px solid var(--accent);background:none;color:var(--accent)}
+  .eyebrow{font-family:var(--body);letter-spacing:.2em}
+  .head h2::after{content:"";display:block;width:60px;height:2px;background:var(--accent);margin-top:18px}
+  .waarom{background:var(--surface)}
+  </style></head>
+<body>
+<div class="aanbouw" role="note" style="background:#0e1830;color:#dfe4ee;font:500 14px/1.4 'Source Sans 3',system-ui,sans-serif;text-align:center;padding:9px 16px;border-bottom:1px solid rgba(201,162,39,.35)"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#c9a227;margin-right:8px;vertical-align:1px"></span>Deze website is in aanbouw. Nog niet alles werkt zoals het straks zal werken; neem bij vragen gerust <a href="mailto:dave@resultop.nl" style="color:#c9a227">direct contact</a> op.</div>
+<header class="site"><div class="wrap nav">
+<a class="brand" href="#" aria-label="Result Operating Partners, naar boven"><img src="assets/logo-licht.png" alt="Result Operating Partners" class="logo" width="1375" height="409"></a>
+<button class="menu-btn" aria-label="Menu openen" aria-expanded="false" aria-controls="hoofdmenu"><span></span><span></span><span></span></button>
+<nav id="hoofdmenu"><a href="#diensten">Diensten</a><a href="#aanpak">Aanpak</a><a href="#team">Partner</a><a class="btn solid" href="#contact">Contact</a></nav>
+</div></header>
+<section class="hero hero-split"><div class="wrap hero-in">
+<div><span class="eyebrow">Operating Partners</span><h1>Van strategie naar meetbaar resultaat.</h1>
+<p>Wij werken naast ondernemers, directies en investeerders om plannen daadwerkelijk uit te voeren. Hands-on, met focus op wat de onderneming sterker en waardevoller maakt.</p>
+<div class="ctas"><a class="btn solid" href="afspraak.html">Plan een kennismaking</a><a class="btn ghost" href="#aanpak">Onze aanpak</a></div></div>
+<div class="hero-art"><div class="art-bars"><span style="height:30%"></span><span style="height:42%"></span><span style="height:51%"></span><span style="height:66%"></span><span style="height:82%"></span><span style="height:100%"></span></div></div>
+</div></section>
+<section class="diensten" id="diensten"><div class="wrap">
+<div class="head"><span class="eyebrow">Diensten</span><h2>Waar wij het verschil maken</h2><p>Geen dikke rapporten, maar een partner die meedenkt én meedoet.</p></div>
+<div class="svc-cards"><article class="card"><span class="n">01</span><h3>Waardecreatie</h3><p>Samen met management en aandeelhouders een concreet waardecreatieplan opstellen en stap voor stap realiseren.</p></article><article class="card"><span class="n">02</span><h3>Operationele verbetering</h3><p>Processen, organisatie en systemen verbeteren, zodat de onderneming efficiënter en beter schaalbaar wordt.</p></article><article class="card"><span class="n">03</span><h3>Interim leiderschap</h3><p>Tijdelijk een directie- of sleutelrol invullen tijdens groei, transitie of overname, met een heldere overdracht.</p></article><article class="card"><span class="n">04</span><h3>Groeistrategie</h3><p>Nieuwe markten, proposities en kanalen verkennen en vertalen naar een haalbaar plan met duidelijke prioriteiten.</p></article><article class="card"><span class="n">05</span><h3>Buy-and-build &amp; integratie</h3><p>Begeleiding bij overnames, van due diligence tot een soepele integratie van mensen, processen en systemen.</p></article><article class="card"><span class="n">06</span><h3>Sturing &amp; rapportage</h3><p>Heldere KPI's, dashboards en een vast overlegritme, zodat iedereen weet waar de onderneming staat.</p></article></div></div></section>
+<section class="aanpak" id="aanpak"><div class="wrap">
+<div class="head"><span class="eyebrow">Aanpak</span><h2>In vier stappen naar resultaat</h2><p>Scherp beginnen, samen uitvoeren en resultaat borgen.</p></div>
+<ol class="steps"><li><b>STAP 1</b><h3>Analyse</h3><p>In korte tijd in kaart brengen waar de grootste kansen en knelpunten zitten.</p></li><li><b>STAP 2</b><h3>Plan</h3><p>Samen met het management prioriteiten, doelen en een realistische planning bepalen.</p></li><li><b>STAP 3</b><h3>Uitvoering</h3><p>Zelf instappen en naast het team de verbeteringen echt doorvoeren.</p></li><li><b>STAP 4</b><h3>Borging</h3><p>Zorgen dat resultaten blijven staan en de organisatie zelfstandig verder kan.</p></li></ol></div></section>
+<section class="waarom"><div class="wrap why-grid">
+<div><span class="eyebrow">Waarom wij</span><div class="head" style="margin-bottom:0"><h2>Ondernemers die zelf aan het roer hebben gestaan</h2><p>We weten hoe het is om verantwoordelijk te zijn voor resultaat.</p></div>
+<div class="quote">"Een goed plan is pas waardevol als het wordt uitgevoerd."</div></div>
+<ul class="why"><li><strong>Hands-on</strong><span>We werken mee in de organisatie, niet alleen erboven.</span></li><li><strong>Resultaatgericht</strong><span>Vooraf afspraken over doelen, en daar sturen we op.</span></li><li><strong>Onafhankelijk</strong><span>Een eerlijk oordeel, ook als dat ongemakkelijk is.</span></li><li><strong>Brug tussen investeerder en onderneming</strong><span>We spreken de taal van beide kanten.</span></li></ul></div></section>
+<section class="team" id="team"><div class="wrap">
+<div class="solo">
+<div class="solo-photo"><img src="assets/dave-venmans-portret.jpg" alt="Dave Venmans, Operating Partner bij Result Operating Partners" width="960" height="1200" loading="lazy"></div>
+<div class="solo-body">
+<span class="eyebrow">De partner</span>
+<h2>Dave Venmans</h2>
+<p class="solo-role">Operating Partner · MBA, EMFC/RC</p>
+<p>Result Operating Partners draait om persoonlijke betrokkenheid. U werkt niet met een wisselend team van adviseurs, maar rechtstreeks met de partner die verantwoordelijk is voor het resultaat.</p>
+<p>Met een achtergrond als MBA en registercontroller brengt Dave financiële scherpte en een nuchtere, praktische aanpak. Hij werkt naast directie en aandeelhouders aan de vraagstukken die er echt toe doen, van eerste analyse tot aantoonbaar resultaat.</p>
+<div class="solo-links"><a class="plink" href="https://nl.linkedin.com/in/davevenmans-mba-emfc" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>Bekijk LinkedIn-profiel</a></div>
+</div></div>
+</div></section>
+<section class="contact" id="contact"><div class="wrap">
+<div class="cta">
+<div><span class="eyebrow">Contact</span><h2>Neem direct contact met mij op</h2>
+<p>Geen formulieren of tussenpersonen. Kies direct een moment in mijn agenda voor een vrijblijvend kennismakingsgesprek van 30 minuten, via Microsoft Teams of telefonisch.</p></div>
+<div class="cta-actions">
+<a class="btn solid" href="afspraak.html">Plan een gesprek in mijn agenda</a>
+<a class="plink" href="mailto:dave@resultop.nl"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>dave@resultop.nl</a>
+<a class="plink" href="tel:+31646748549"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>06 46 74 85 49</a>
+</div></div>
+</div></section>
+<footer><div class="wrap foot"><img src="assets/logo.png" alt="Result Operating Partners" class="foot-logo" width="1375" height="409"><span>© <span id="jaar">2026</span> Result Operating Partners · <a href="mailto:dave@resultop.nl">dave@resultop.nl</a> · <a href="privacy.html">Privacy</a></span></div></footer>
+<script>
+(function(){var b=document.querySelector(".menu-btn"),n=document.getElementById("hoofdmenu");
+function h(){document.documentElement.style.setProperty("--hdr",document.querySelector(".site").getBoundingClientRect().bottom+"px")}
+function t(o){h();document.body.classList.toggle("menu-open",o);b.setAttribute("aria-expanded",o);b.setAttribute("aria-label",o?"Menu sluiten":"Menu openen");}
+b.addEventListener("click",function(){t(!document.body.classList.contains("menu-open"))});
+n.querySelectorAll("a").forEach(function(a){a.addEventListener("click",function(){t(false)})});
+document.addEventListener("keydown",function(e){if(e.key==="Escape")t(false)});
+document.getElementById("jaar").textContent=new Date().getFullYear();})();
+</script>
+</body></html>
