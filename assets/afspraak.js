@@ -218,6 +218,18 @@
     ]);
   }
 
+  // Vaste regel die Power Automate kan uitlezen (tussen [[ROP]] en [[/ROP]]).
+  function systeemGegevens(data) {
+    var start = toMin(state.time), duur = CFG.duurMinuten || 30;
+    var schoon = function (v) { return String(v || '').replace(/[\[\]]/g, '').slice(0, 1500); };
+    return '[[ROP]]' + JSON.stringify({
+      naam: schoon(data.name), email: schoon(data.email), telefoon: schoon(data.phone), organisatie: schoon(data.company),
+      soort: state.type === 'teams' ? 'teams' : 'telefoon', soortTekst: soort(),
+      start: state.date + 'T' + hhmm(start) + ':00', eind: state.date + 'T' + hhmm(start + duur) + ':00',
+      moment: longDate(state.date) + ' om ' + state.time + ' uur', bericht: schoon(data.message),
+    }) + '[[/ROP]]';
+  }
+
   // Link die de afspraak met één klik in Outlook (web) klaarzet.
   function agendaLink(data) {
     var start = toMin(state.time), duur = CFG.duurMinuten || 30;
@@ -242,6 +254,7 @@
       'Voorkeursmoment': longDate(state.date) + ' om ' + state.time + ' uur',
       'Toelichting': data.message || '-',
       'In mijn agenda zetten': agendaLink(data),
+      'Gegevens voor automatische verwerking': systeemGegevens(data),
       '_subject': 'Aanvraag kennismaking: ' + soort() + ', ' + longDate(state.date) + ' ' + state.time + ' - ' + data.name,
       '_template': 'table',
       '_captcha': 'false',
