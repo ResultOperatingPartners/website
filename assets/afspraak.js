@@ -231,16 +231,35 @@
   }
   function naarBase64(t) { return btoa(unescape(encodeURIComponent(t))); }
 
-  // Link die de afspraak met één klik in Outlook (web) klaarzet.
+  // Link die de afspraak met één klik in Outlook (web) klaarzet — mét de aanvrager
+  // als genodigde. Op "Verzenden" maakt Outlook de afspraak én stuurt automatisch de
+  // officiële agenda-uitnodiging (met Teams-link bij een Teams-gesprek) naar de aanvrager.
   function agendaLink(data) {
     var start = toMin(state.time), duur = CFG.duurMinuten || 30;
     var q = {
       subject: 'Kennismaking ' + data.name + (data.company ? ' (' + data.company + ')' : '') + ' - ' + soort(),
       startdt: isoMetZone(state.date, start), enddt: isoMetZone(state.date, start + duur),
       body: 'Naam: ' + data.name + '\nE-mail: ' + data.email + (data.phone ? '\nTelefoon: ' + data.phone : '') + (data.message ? '\n\n' + data.message : ''),
+      to: data.email,
     };
     if (state.type === 'teams') q.online = 'true';
     return 'https://outlook.office.com/calendar/deeplink/compose?' + Object.keys(q).map(function (k) { return k + '=' + encodeURIComponent(q[k]); }).join('&');
+  }
+
+  // Kant-en-klare bevestigingsmail: Dave hoeft dit alleen te openen en op Verzenden te
+  // klikken. Los van (of aanvullend op) de officiële agenda-uitnodiging hierboven.
+  function bevestigingMailLink(data) {
+    var subject = 'Bevestigd: kennismaking ' + longDate(state.date) + ' om ' + state.time + ' uur';
+    var hoe = state.type === 'teams'
+      ? 'Je ontvangt (of ontving al) de Teams-uitnodiging via de agenda-afspraak.'
+      : 'Ik bel je op ' + (data.phone || 'het door jou opgegeven nummer') + '.';
+    var body = [
+      'Beste ' + data.name + ',', '',
+      'Hierbij bevestig ik ons gesprek op ' + longDate(state.date) + ' om ' + state.time + ' uur (' + soort() + ', ' + (CFG.duurMinuten || 30) + ' minuten).',
+      hoe, '',
+      'Tot dan!', '', 'Met vriendelijke groet,', 'Dave Venmans', 'Result Operating Partners',
+    ].join('\n');
+    return 'mailto:' + encodeURIComponent(data.email) + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
   }
 
   // Laatste, verse controle vlak vóór het versturen: de bezet-data kan verouderd zijn
@@ -271,7 +290,8 @@
       'Soort gesprek': soort(),
       'Voorkeursmoment': longDate(state.date) + ' om ' + state.time + ' uur',
       'Toelichting': data.message || '-',
-      'In mijn agenda zetten': agendaLink(data),
+      'Bevestigen + uitnodiging versturen (1 klik, incl. Teams-link)': agendaLink(data),
+      'Losse bevestigingsmail (kant-en-klaar, alleen nog versturen)': bevestigingMailLink(data),
       'Gegevens voor automatische verwerking': systeemGegevens(data),
       '_subject': 'Aanvraag kennismaking: ' + soort() + ', ' + longDate(state.date) + ' ' + state.time + ' - ' + data.name,
       '_template': 'table',
