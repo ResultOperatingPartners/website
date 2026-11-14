@@ -5,7 +5,7 @@ on:
   push:
     branches: [main]
   schedule:
-    - cron: '*/30 6-21 * * *'   # agenda elk half uur bijwerken (overdag)
+    - cron: '*/15 6-21 * * *'   # agenda elk kwartier bijwerken (overdag); veilig dankzij de retry hieronder
   workflow_dispatch:
 
 permissions:

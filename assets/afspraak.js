@@ -243,6 +243,23 @@
     return 'https://outlook.office.com/calendar/deeplink/compose?' + Object.keys(q).map(function (k) { return k + '=' + encodeURIComponent(q[k]); }).join('&');
   }
 
+  // Laatste, verse controle vlak vóór het versturen: de bezet-data kan verouderd zijn
+  // als de bezoeker de pagina een tijdje open had staan. Voorkomt de meeste dubbele
+  // aanvragen voor hetzelfde moment (geen garantie, want er draait geen server).
+  function herbevestigNogVrij(klaar) {
+    var begin = amsMs(state.date, toMin(state.time));
+    var eind = amsMs(state.date, toMin(state.time) + (CFG.duurMinuten || 30));
+    fetch('/assets/bezet.json', { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : {}; })
+      .catch(function () { return {}; })
+      .then(function (j) {
+        var bezet = (j && j.bezet) || [];
+        var botst = bezet.some(function (b) { return b[0] < eind && b[1] > begin; });
+        klaar(!botst);
+      })
+      .catch(function () { klaar(true); }); // kon niet checken: laat de aanvraag gewoon door
+  }
+
   // Tijdelijk (zolang er geen eigen server is): versturen via FormSubmit, op de
   // achtergrond. De bezoeker blijft op deze pagina en ziet geen scherm van FormSubmit.
   function aanvraagViaFormSubmit(data, moment) {
@@ -260,6 +277,7 @@
       '_template': 'table',
       '_captcha': 'false',
       '_honey': '',
+      '_autoresponse': 'Beste ' + data.name + ',\n\nBedankt voor je aanvraag voor een kennismakingsgesprek (' + soort() + ') op ' + longDate(state.date) + ' om ' + state.time + ' uur.\n\nDit is een automatische ontvangstbevestiging: Dave bevestigt het gesprek persoonlijk ' + (CFG.bevestigingTermijn || 'binnen één werkdag') + ' per e-mail. Tot die bevestiging staat het moment nog niet definitief vast.\n\nVragen? Mail gerust terug naar ' + EMAIL + '.\n\nMet vriendelijke groet,\nResult Operating Partners',
     };
     var url = CFG.formsubmit.replace('formsubmit.co/', 'formsubmit.co/ajax/');
     var b = $('submit'); var msg = $('msg');
@@ -307,7 +325,19 @@
     var moment = soort() + ' op ' + longDate(state.date) + ' om ' + state.time + ' uur';
 
     if (mode === 'aanvraag' && CFG.formsubmit) {
-      aanvraagViaFormSubmit(data, moment);
+      var btnC = $('submit');
+      btnC.disabled = true; btnC.innerHTML = '<span class="spin"></span>Moment controleren…';
+      herbevestigNogVrij(function (nogVrij) {
+        if (!nogVrij) {
+          msg.textContent = 'Dit moment is helaas net door iemand anders gekozen. Kies een ander moment hieronder.';
+          msg.classList.add('err');
+          btnC.innerHTML = 'Aanvraag versturen';
+          state.time = null; lock('s4'); update();
+          loadSlots();
+          return;
+        }
+        aanvraagViaFormSubmit(data, moment);
+      });
       return;
     }
 
