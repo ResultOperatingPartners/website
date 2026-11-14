@@ -5,7 +5,7 @@ on:
   push:
     branches: [main]
   schedule:
-    - cron: '*/15 6-21 * * *'   # agenda elk kwartier bijwerken (overdag)
+    - cron: '*/30 6-21 * * *'   # agenda elk half uur bijwerken (overdag)
   workflow_dispatch:
 
 permissions:
@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
+      url: ${{ steps.deploy_retry.outputs.page_url || steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - name: Alleen de site verzamelen
@@ -41,4 +41,12 @@ jobs:
         with:
           path: _site
       - id: deploy
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
+      - name: Wachten voor retry (tijdelijke GitHub-storing)
+        if: steps.deploy.outcome == 'failure'
+        run: sleep 20
+      - id: deploy_retry
+        name: Publicatie opnieuw proberen
+        if: steps.deploy.outcome == 'failure'
         uses: actions/deploy-pages@v4
