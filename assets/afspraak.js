@@ -294,7 +294,9 @@
       'Losse bevestigingsmail (kant-en-klaar, alleen nog versturen)': bevestigingMailLink(data),
       'Gegevens voor automatische verwerking': systeemGegevens(data),
       '_subject': 'Aanvraag kennismaking: ' + soort() + ', ' + longDate(state.date) + ' ' + state.time + ' - ' + data.name,
-      '_template': 'table',
+      // 'basic' (regel per regel) i.p.v. 'table': veel mailclients, waaronder Outlook,
+      // herkennen een kale link niet betrouwbaar als die in een tabelcel staat.
+      '_template': 'basic',
       '_captcha': 'false',
       '_honey': '',
       '_autoresponse': 'Beste ' + data.name + ',\n\nBedankt voor je aanvraag voor een kennismakingsgesprek (' + soort() + ') op ' + longDate(state.date) + ' om ' + state.time + ' uur.\n\nDit is een automatische ontvangstbevestiging: Dave bevestigt het gesprek persoonlijk ' + (CFG.bevestigingTermijn || 'binnen één werkdag') + ' per e-mail. Tot die bevestiging staat het moment nog niet definitief vast.\n\nVragen? Mail gerust terug naar ' + EMAIL + '.\n\nMet vriendelijke groet,\nResult Operating Partners',
