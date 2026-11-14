@@ -10,8 +10,10 @@ cd pad/naar/je/lokale-kloon-van-website
 python3 tools/editor/server.py
 ```
 
-Er opent automatisch een browservenster op `http://localhost:8787/`.
-Kies daar de pagina die je wilt bewerken.
+Er opent automatisch een browservenster met een lijstje van pagina's.
+Kies daar de pagina die je wilt bewerken (elke pagina is ook direct
+te openen door `?bewerken=1` aan het adres toe te voegen, bijvoorbeeld
+`http://localhost:8787/afspraak/?bewerken=1`).
 
 **Nodig:** Python 3 (standaard aanwezig op macOS) en git met je eigen
 push-rechten op deze repository — dezelfde manier waarop je nu al met

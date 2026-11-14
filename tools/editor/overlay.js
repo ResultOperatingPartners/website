@@ -1,7 +1,13 @@
 (function () {
   'use strict';
   // Deze code draait alleen lokaal via server.py, nooit op de live site.
-  var PAGE = window.__EDITOR_PAGE || '';
+  // Geen server-geïnjecteerde data nodig (de CSP van de site blokkeert inline
+  // scripts): het bestandspad volgt direct uit de URL, net als bij GitHub Pages.
+  var PAGE = (function () {
+    var p = decodeURIComponent(location.pathname).replace(/^\/+/, '');
+    if (p === '' || p.charAt(p.length - 1) === '/') p += 'index.html';
+    return p;
+  })();
   var SELECTIE_TAGS = ['H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'P', 'SPAN', 'A', 'BUTTON', 'LI', 'LABEL', 'SMALL', 'STRONG', 'EM', 'TD', 'TH', 'BLOCKQUOTE'];
   var actief = null;      // momenteel geselecteerd element
   var historie = [];      // undo-stack met volledige pagina-snapshots
@@ -53,7 +59,7 @@
   document.body.appendChild(ui);
 
   // paginakeuze vullen
-  fetch('/').then(function (r) { return r.text(); }).then(function (t) {
+  fetch('/__editor/').then(function (r) { return r.text(); }).then(function (t) {
     var sel = ui.querySelector('.__e-paginas');
     var tmp = document.createElement('div'); tmp.innerHTML = t;
     tmp.querySelectorAll('a').forEach(function (a) {
@@ -99,12 +105,23 @@
 
   function huidigePx(el) { return parseFloat(getComputedStyle(el).fontSize) || 16; }
 
+  function plaatsCursorAanEind(el) {
+    var bereik = document.createRange();
+    bereik.selectNodeContents(el);
+    bereik.collapse(false);
+    var sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(bereik);
+  }
+
   function selecteer(el) {
     if (actief === el) return;
     deselecteer();
     actief = el;
     el.classList.add('__e-selected');
     el.setAttribute('contenteditable', 'true');
+    el.focus();
+    plaatsCursorAanEind(el);
     toonWerkbalk(el);
   }
 
@@ -192,7 +209,22 @@
       if (!n.getAttribute('class')) n.removeAttribute('class');
     });
     var lichaam = kopie.querySelector('body');
-    if (lichaam) lichaam.style.paddingTop = '';
+    if (lichaam) {
+      lichaam.style.paddingTop = '';
+      // Klik-/scroll-status van assets/site.js hoort niet in het opgeslagen bestand.
+      lichaam.classList.remove('menu-open');
+      if (!lichaam.getAttribute('class')) lichaam.removeAttribute('class');
+    }
+    kopie.querySelectorAll('.scrolled').forEach(function (n) {
+      n.classList.remove('scrolled');
+      if (!n.getAttribute('class')) n.removeAttribute('class');
+    });
+    kopie.querySelectorAll('.menu-btn[aria-expanded]').forEach(function (n) {
+      n.setAttribute('aria-expanded', 'false');
+      n.setAttribute('aria-label', 'Menu openen');
+    });
+    kopie.style.removeProperty('--hdr');
+    if (kopie.getAttribute('style') === '') kopie.removeAttribute('style');
     return '<!DOCTYPE html>\n' + kopie.outerHTML;
   }
 

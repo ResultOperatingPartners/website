@@ -12,6 +12,10 @@ Gebruik:
     python3 tools/editor/server.py
     -> open de link die verschijnt (meestal http://localhost:8787)
 
+Elke pagina is te bewerken door ?bewerken=1 aan het adres toe te
+voegen (dat doet het menu op de startpagina al voor je), bijvoorbeeld
+http://localhost:8787/afspraak/?bewerken=1
+
 Vereisten: Python 3 (zit standaard op macOS) en git, met je eigen
 push-rechten op deze repository (dezelfde manier waarop je nu al
 met git/GitHub werkt op deze computer).
@@ -27,7 +31,7 @@ import sys
 import time
 import webbrowser
 from pathlib import Path
-from urllib.parse import unquote, urlparse
+from urllib.parse import unquote, urlparse, parse_qs
 
 PORT = 8787
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -46,11 +50,14 @@ def vind_html_paginas():
     return sorted(paginas)
 
 
-def veilig_pad(verzocht):
-    """Zet een URL-pad om naar een bestand bínnen de repo; weigert ontsnappogingen."""
-    schoon = unquote(verzocht).lstrip("/")
-    if not schoon:
-        schoon = "index.html"
+def resolve_statisch(url_pad):
+    """Zet een URL-pad om naar een bestand bínnen de repo; weigert ontsnappogingen.
+    Volgt dezelfde regel als GitHub Pages: een pad dat op '/' eindigt (of leeg is)
+    wijst naar index.html in die map, zodat relatieve links (assets/..., afspraak/...)
+    precies zo werken als op de live site."""
+    schoon = unquote(url_pad).lstrip("/")
+    if schoon == "" or schoon.endswith("/"):
+        schoon += "index.html"
     kandidaat = (REPO_ROOT / schoon).resolve()
     if REPO_ROOT not in kandidaat.parents and kandidaat != REPO_ROOT:
         return None
@@ -62,40 +69,41 @@ def veilig_pad(verzocht):
 EDITOR_SCRIPT_TAG = '<script src="/__editor/overlay.js" data-editor-script defer></script>'
 
 
-def injecteer_editor(html, pagina_pad):
-    boot = (
-        '<script data-editor-boot>window.__EDITOR_PAGE = '
-        + json.dumps(pagina_pad)
-        + ";</script>"
-    )
-    stuk = boot + "\n" + EDITOR_SCRIPT_TAG + "\n</body>"
+def injecteer_editor(html):
+    # Geen inline <script>: de site gebruikt een Content-Security-Policy die inline
+    # scripts blokkeert. De editor haalt zijn eigen pagina op uit location.pathname.
     if "</body>" in html:
-        return html.replace("</body>", stuk, 1)
-    return html + stuk
+        return html.replace("</body>", EDITOR_SCRIPT_TAG + "\n</body>", 1)
+    return html + EDITOR_SCRIPT_TAG
 
 
 class Handler(http.server.BaseHTTPRequestHandler):
-    server_version = "ROPEditor/1.0"
+    server_version = "ROPEditor/2.0"
 
     def log_message(self, fmt, *args):
         sys.stderr.write("  " + (fmt % args) + "\n")
 
     # ---- GET ----
     def do_GET(self):
-        pad = urlparse(self.path).path
+        parsed = urlparse(self.path)
+        pad = parsed.path
+        query = parse_qs(parsed.query)
 
-        if pad == "/":
-            return self._index_pagina()
+        if pad == "/__editor/" or pad == "/__editor":
+            return self._menu()
         if pad == "/__editor/overlay.js":
             return self._stuur_bestand(EDITOR_DIR / "overlay.js", "application/javascript")
-        if pad.startswith("/__bewerken/"):
-            relatief = pad[len("/__bewerken/"):]
-            return self._bewerk_pagina(relatief)
 
-        bestand = veilig_pad(pad)
+        bestand = resolve_statisch(pad)
         if bestand is None or not bestand.is_file():
             self.send_error(404, "Niet gevonden")
             return
+
+        if bestand.suffix == ".html" and "bewerken" in query:
+            html = bestand.read_text(encoding="utf-8")
+            html = injecteer_editor(html)
+            return self._stuur_tekst(html, "text/html; charset=utf-8")
+
         ctype = mimetypes.guess_type(str(bestand))[0] or "application/octet-stream"
         self._stuur_bestand(bestand, ctype)
 
@@ -112,10 +120,21 @@ class Handler(http.server.BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(data)
 
-    def _index_pagina(self):
+    def _stuur_tekst(self, tekst, ctype):
+        data = tekst.encode("utf-8")
+        self.send_response(200)
+        self.send_header("Content-Type", ctype)
+        self.send_header("Content-Length", str(len(data)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(data)
+
+    def _menu(self):
         paginas = vind_html_paginas()
         items = "".join(
-            '<li><a href="/__bewerken/%s">%s</a></li>' % (p, p) for p in paginas
+            '<li><a href="/%s?bewerken=1">%s</a> <span style="color:#888">(/%s)</span></li>'
+            % (p, p, ("" if p == "index.html" else p.rsplit("/", 1)[0] + "/"))
+            for p in paginas
         )
         html = """<!DOCTYPE html><html lang="nl"><head><meta charset="utf-8">
 <title>Website-editor — Result Operating Partners</title>
@@ -124,27 +143,7 @@ a{color:#14213d}li{margin:8px 0;font-size:17px}h1{font-size:22px}</style></head>
 <body><h1>Welke pagina wil je bewerken?</h1><ul>%s</ul>
 <p style="color:#666;font-size:14px">Lokale editor — wijzigingen worden pas live na jouw goedkeuring op GitHub.</p>
 </body></html>""" % items
-        data = html.encode("utf-8")
-        self.send_response(200)
-        self.send_header("Content-Type", "text/html; charset=utf-8")
-        self.send_header("Content-Length", str(len(data)))
-        self.end_headers()
-        self.wfile.write(data)
-
-    def _bewerk_pagina(self, relatief):
-        bestand = veilig_pad(relatief)
-        if bestand is None or not bestand.is_file() or bestand.suffix != ".html":
-            self.send_error(404, "Pagina niet gevonden")
-            return
-        html = bestand.read_text(encoding="utf-8")
-        html = injecteer_editor(html, relatief)
-        data = html.encode("utf-8")
-        self.send_response(200)
-        self.send_header("Content-Type", "text/html; charset=utf-8")
-        self.send_header("Content-Length", str(len(data)))
-        self.send_header("Cache-Control", "no-store")
-        self.end_headers()
-        self.wfile.write(data)
+        self._stuur_tekst(html, "text/html; charset=utf-8")
 
     # ---- POST ----
     def do_POST(self):
@@ -171,13 +170,13 @@ a{color:#14213d}li{margin:8px 0;font-size:17px}h1{font-size:22px}</style></head>
         self.wfile.write(data)
 
     def _opslaan(self, body):
-        relatief = body.get("path", "")
-        html = body.get("html", "")
-        if not relatief.endswith(".html") or not html.strip():
-            return self._json(400, {"ok": False, "error": "Ontbrekende of ongeldige gegevens."})
-        bestand = veilig_pad(relatief)
-        if bestand is None or not bestand.is_file():
-            return self._json(400, {"ok": False, "error": "Onbekende pagina."})
+        relatief = (body.get("path") or "").strip()
+        html = body.get("html") or ""
+        if not relatief or not relatief.endswith(".html") or not html.strip():
+            return self._json(400, {"ok": False, "error": "Ontbrekende of ongeldige gegevens (pagina: '%s')." % relatief})
+        bestand = (REPO_ROOT / relatief).resolve()
+        if REPO_ROOT not in bestand.parents or not bestand.is_file():
+            return self._json(400, {"ok": False, "error": "Onbekende pagina: " + relatief})
         if not html.lstrip().lower().startswith("<!doctype"):
             return self._json(400, {"ok": False, "error": "Geen geldige HTML ontvangen."})
         bestand.write_text(html, encoding="utf-8")
@@ -235,7 +234,7 @@ def main():
     if not (REPO_ROOT / ".git").exists():
         print("Let op: %s lijkt geen git-repository. Start dit script vanuit je lokale kloon van de website." % REPO_ROOT)
     server = StillServer(("127.0.0.1", PORT), Handler)
-    url = "http://localhost:%d/" % PORT
+    url = "http://localhost:%d/__editor/" % PORT
     print("Website-editor draait op %s" % url)
     print("Sluiten met Ctrl+C.")
     try:
