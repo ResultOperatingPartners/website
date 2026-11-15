@@ -26,6 +26,8 @@ $Afzender      = 'submissions@formsubmit.co'
 $Map           = Join-Path $env:LOCALAPPDATA 'ResultOP'
 $StatusBestand = Join-Path $Map 'aanvragen.json'
 $Logboek       = Join-Path $Map 'logboek.txt'
+$SleutelBestand = Join-Path $Map 'github-sleutel.txt'   # versleuteld (alleen leesbaar voor jouw Windows-account)
+$Repo          = 'ResultOperatingPartners/website'
 # ---------------------------------------------------------------------------
 
 New-Item -ItemType Directory -Force -Path $Map | Out-Null
@@ -81,6 +83,25 @@ function Nieuw-Token {
     return ([Convert]::ToBase64String($b) -replace '[+/=]', '')
 }
 
+# ---- Site direct laten bijwerken (zodat het moment snel bezet is) -----------
+$script:bijwerkenOm = @()
+function Plan-Sitebijwerking {
+    # Nu (na een minuut) en nog eens na 6 minuten: Outlook werkt de gepubliceerde agenda met wat vertraging bij.
+    $script:bijwerkenOm += (Get-Date).AddSeconds(60)
+    $script:bijwerkenOm += (Get-Date).AddMinutes(6)
+}
+function Werk-SiteBij {
+    if (-not (Test-Path $SleutelBestand)) { return }
+    try {
+        $veilig = Get-Content $SleutelBestand -Raw | ConvertTo-SecureString
+        $sleutel = [System.Net.NetworkCredential]::new('', $veilig).Password
+        Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/$Repo/actions/workflows/pages.yml/dispatches" `
+            -Headers @{ Authorization = "Bearer $sleutel"; Accept = 'application/vnd.github+json'; 'X-GitHub-Api-Version' = '2022-11-28' } `
+            -Body '{"ref":"main"}' -ContentType 'application/json' | Out-Null
+        Log 'Site laten bijwerken'
+    } catch { Log "Site bijwerken mislukt: $($_.Exception.Message)" }
+}
+
 # ---- Stap 1 en 2: nieuwe aanvragen ophalen ---------------------------------
 function Controleer-Mailbox($status) {
     $sinds = (Get-Date).ToUniversalTime().AddDays(-14).ToString('yyyy-MM-ddTHH:mm:ssZ')
@@ -133,6 +154,7 @@ $(Details-Html $d)
         } | Out-Null
 
         $status[$id] = @{ status = 'wacht'; token = $token; eventId = $event.id; gegevens = $d }
+        Plan-Sitebijwerking
         Log "Nieuwe aanvraag: $($d.naam), $($d.moment)"
     }
 }
@@ -180,12 +202,14 @@ function Behandel-Verzoek($ctx, $status) {
             }
             Graph PATCH ("/me/events/" + $item.eventId) $wijziging | Out-Null
             $item.status = 'geaccepteerd'
+            Plan-Sitebijwerking
             Log "Geaccepteerd: $($d.naam), $($d.moment)"
             $html = Pagina 'Afspraak bevestigd' "<p>De afspraak met <b>$(Html $d.naam)</b> op $(Html $d.moment) staat vast in je agenda. $(Html $d.naam) heeft een uitnodiging ontvangen op $(Html $d.email).</p>"
         }
         elseif ($pad -eq '/ander-moment') {
             try { Graph DELETE ("/me/events/" + $item.eventId) $null | Out-Null } catch { Log "Voorlopig blok niet gevonden: $($_.Exception.Message)" }
             $item.status = 'ander moment'
+            Plan-Sitebijwerking
             Log "Ander moment: $($d.naam)"
             $onderwerp = [uri]::EscapeDataString('Je aanvraag voor een kennismaking')
             $tekstMail = [uri]::EscapeDataString("Beste $($d.naam),`n`nDank voor je aanvraag voor een kennismaking op $($d.moment). Helaas past dat moment mij niet. Zou een van de volgende momenten wel uitkomen?`n`n- `n- `n`nMet vriendelijke groet,`nDave Venmans`nResult Operating Partners`n06 46 74 85 49")
@@ -226,6 +250,11 @@ try {
             try { Controleer-Mailbox $status; Bewaar-Status $status }
             catch { Log "Fout bij controleren: $($_.Exception.Message)" }
             $volgende = (Get-Date).AddSeconds($ControleerElk)
+        }
+        if ($script:bijwerkenOm.Count -gt 0 -and (Get-Date) -ge ($script:bijwerkenOm | Sort-Object | Select-Object -First 1)) {
+            $nu = Get-Date
+            $script:bijwerkenOm = @($script:bijwerkenOm | Where-Object { $_ -gt $nu })
+            Werk-SiteBij
         }
         if ($wacht.Wait(500)) {
             try { Behandel-Verzoek $wacht.Result $status }
