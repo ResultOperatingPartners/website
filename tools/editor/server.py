@@ -69,9 +69,16 @@ def resolve_statisch(url_pad):
 EDITOR_SCRIPT_TAG = '<script src="/__editor/overlay.js" data-editor-script defer></script>'
 
 
+SITE_SCRIPT = re.compile(r'<script(?![^>]*data-editor-script)([^>]*?)\ssrc="([^"]+)"([^>]*)>')
+
+
 def injecteer_editor(html):
     # Geen inline <script>: de site gebruikt een Content-Security-Policy die inline
     # scripts blokkeert. De editor haalt zijn eigen pagina op uit location.pathname.
+    # De eigen scripts van de site draaien in de editor NIET: die veranderen de pagina
+    # (stappen op slot, tijden invullen, menu-status) en dat mag niet in het bestand belanden.
+    # overlay.js zet ze bij het opslaan weer terug.
+    html = SITE_SCRIPT.sub(r'<script\1 type="text/plain" data-editor-src="\2"\3>', html)
     if "</body>" in html:
         return html.replace("</body>", EDITOR_SCRIPT_TAG + "\n</body>", 1)
     return html + EDITOR_SCRIPT_TAG

@@ -8,7 +8,7 @@
     if (p === '' || p.charAt(p.length - 1) === '/') p += 'index.html';
     return p;
   })();
-  var SELECTIE_TAGS = ['H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'P', 'SPAN', 'A', 'BUTTON', 'LI', 'LABEL', 'SMALL', 'STRONG', 'EM', 'TD', 'TH', 'BLOCKQUOTE'];
+  var SELECTIE_TAGS = ['H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'P', 'SPAN', 'A', 'BUTTON', 'LI', 'LABEL', 'SMALL', 'STRONG', 'EM', 'TD', 'TH', 'BLOCKQUOTE', 'DIV'];  // DIV alleen als er geen blokken in zitten
   var actief = null;      // momenteel geselecteerd element
   var historie = [];      // undo-stack met volledige pagina-snapshots
   var vuil = false;
@@ -21,6 +21,12 @@
     for (var i = 0; i < el.children.length; i++) {
       var k = el.children[i];
       if (['DIV', 'SECTION', 'UL', 'OL', 'FORM', 'HEADER', 'FOOTER', 'MAIN', 'ARTICLE', 'NAV'].indexOf(k.tagName) !== -1) return false;
+    }
+    if (el.tagName === 'DIV') {
+      // een DIV alleen als hij uitsluitend losse tekst bevat (bijv. na eerder bewerken)
+      for (var j = 0; j < el.children.length; j++) {
+        if (['A', 'SPAN', 'STRONG', 'EM', 'B', 'I', 'BR', 'SMALL'].indexOf(el.children[j].tagName) === -1) return false;
+      }
     }
     var tekst = (el.textContent || '').trim();
     return tekst.length > 0;
@@ -48,6 +54,8 @@
     '.__e-toolbar .__lbl{padding:0 4px;color:#cfd6e4;white-space:nowrap}' +
     '.__e-resize{position:absolute;width:10px;height:10px;background:#c9a227;border:2px solid #14213d;border-radius:50%;cursor:ew-resize;z-index:999998}' +
     'body{padding-top:48px !important}' +
+    /* onderdelen die de site pas later vrijgeeft (zoals de stappen van het afspraakformulier) toch bewerkbaar maken */
+    '.locked{pointer-events:auto !important;opacity:1 !important}' +
     '</style>' +
     '<div class="__e-bar">' +
     '<b>Editor — ' + PAGE + '</b>' +
@@ -174,6 +182,23 @@
     toonWerkbalk(actief);
   }
 
+  // Enter = nieuwe regel binnen hetzelfde blok (de browser maakt anders losse <div>'s,
+  // waardoor het blok daarna niet meer te selecteren is).
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && actief && actief.contains(e.target)) {
+      e.preventDefault();
+      voorSnapshot();
+      document.execCommand('insertLineBreak');
+    }
+  }, true);
+  // Plakken altijd als platte tekst (geen opmaak of verborgen blokken van Word/Outlook).
+  document.addEventListener('paste', function (e) {
+    if (!actief || !actief.contains(e.target)) return;
+    e.preventDefault();
+    var tekst = (e.clipboardData || window.clipboardData).getData('text/plain').replace(/\r?\n+/g, ' ');
+    document.execCommand('insertText', false, tekst);
+  }, true);
+
   document.addEventListener('input', function (e) {
     if (e.target === actief) markeerVuil();
   }, true);
@@ -203,6 +228,12 @@
     var kopie = document.documentElement.cloneNode(true);
     kopie.querySelectorAll('#__editorUI').forEach(function (n) { n.remove(); });
     kopie.querySelectorAll('[data-editor-script], script[data-editor-boot]').forEach(function (n) { n.remove(); });
+    // De scripts van de site (in de editor uitgezet) weer normaal terugzetten.
+    kopie.querySelectorAll('script[data-editor-src]').forEach(function (n) {
+      n.setAttribute('src', n.getAttribute('data-editor-src'));
+      n.removeAttribute('data-editor-src');
+      n.removeAttribute('type');
+    });
     kopie.querySelectorAll('[contenteditable]').forEach(function (n) { n.removeAttribute('contenteditable'); });
     kopie.querySelectorAll('.__e-hover,.__e-selected').forEach(function (n) {
       n.classList.remove('__e-hover', '__e-selected');
