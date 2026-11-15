@@ -32,6 +32,10 @@ window.AFSPRAAK_CONFIG = {
   duurMinuten: 30,
   stapMinuten: 30,
 
+  // Hoeveel minuten na elke afspraak in je agenda is er nog niets te boeken?
+  // (tijd om af te ronden of te reizen; 0 = direct aansluitend)
+  bufferNaAfspraakMinuten: 30,
+
   // Hoeveel uur van tevoren moet iemand minimaal plannen?
   minimaalUrenVooraf: 24,
 

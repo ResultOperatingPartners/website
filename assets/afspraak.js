@@ -72,6 +72,7 @@
       if (n != null) perDag[n] = bron[k] || [];
     });
     var duur = CFG.duurMinuten || 30, stap = CFG.stapMinuten || 30;
+    var na = (CFG.bufferNaAfspraakMinuten || 0) * 60000;  // vrije tijd na elke afspraak
     var vroegst = Date.now() + (CFG.minimaalUrenVooraf == null ? 24 : CFG.minimaalUrenVooraf) * 3600000;
     var horizon = CFG.maximaalDagenVooruit || 60;
     var uit = CFG.nietBeschikbaar || [];
@@ -84,7 +85,7 @@
       (perDag[d.getDay()] || []).forEach(function (b) {
         for (var s = toMin(b[0]); s + duur <= toMin(b[1]); s += stap) {
           var begin = amsMs(iso, s), eind = amsMs(iso, s + duur);
-          var vrij = !bezet.some(function (b) { return b[0] < eind && b[1] > begin; });
+          var vrij = !bezet.some(function (b) { return b[0] < eind && b[1] + na > begin; });
           if (begin >= vroegst && vrij) slots.push(hhmm(s));
         }
       });

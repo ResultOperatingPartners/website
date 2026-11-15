@@ -206,7 +206,7 @@ button{margin-top:18px;padding:12px 24px;border:0;border-radius:999px;background
 # ---- Vrije momenten volgens de instellingen van de site + je agenda ---------
 $NL = [System.Globalization.CultureInfo]::GetCultureInfo('nl-NL')
 function Lees-Instellingen {
-    $c = @{ blokken = @{ 5 = @(, @(540, 1020)) }; duur = 30; stap = 30; vooraf = 24; dagen = 60; uit = @() }
+    $c = @{ blokken = @{ 5 = @(, @(540, 1020)) }; duur = 30; stap = 30; vooraf = 24; dagen = 60; uit = @(); na = 0 }
     $pad = Join-Path $PSScriptRoot '..\assets\afspraak-config.js'
     if (-not (Test-Path $pad)) { return $c }
     $txt = ((Get-Content $pad -Encoding UTF8) | Where-Object { $_ -notmatch '^\s*//' }) -join "`n"
@@ -222,7 +222,7 @@ function Lees-Instellingen {
         if ($lijst.Count) { $blokken[$i] = $lijst }
     }
     if ($blokken.Count) { $c.blokken = $blokken }
-    foreach ($k in @(@('duur', 'duurMinuten'), @('stap', 'stapMinuten'), @('vooraf', 'minimaalUrenVooraf'), @('dagen', 'maximaalDagenVooruit'))) {
+    foreach ($k in @(@('na', 'bufferNaAfspraakMinuten'), @('duur', 'duurMinuten'), @('stap', 'stapMinuten'), @('vooraf', 'minimaalUrenVooraf'), @('dagen', 'maximaalDagenVooruit'))) {
         $m = [regex]::Match($txt, "$($k[1])\s*:\s*(\d+)")
         if ($m.Success) { $c[$k[0]] = [int]$m.Groups[1].Value }
     }
@@ -258,7 +258,7 @@ function Vrije-Momenten($negeerEventId, $origineel) {
                 $begin = $dag.AddMinutes($s); $eind = $begin.AddMinutes($c.duur)
                 if ($begin -lt $vroegst -or $begin -eq $origineel) { continue }
                 $vrij = $true
-                foreach ($x in $bezet) { if ($x[0] -lt $eind -and $x[1] -gt $begin) { $vrij = $false; break } }
+                foreach ($x in $bezet) { if ($x[0] -lt $eind -and $x[1].AddMinutes($c.na) -gt $begin) { $vrij = $false; break } }
                 if ($vrij) { $uit += [pscustomobject]@{ start = $begin; eind = $eind } }
             }
         }
