@@ -87,3 +87,21 @@ Tekst voor de bevestiging:
 - **Aanvraag in je agenda:** elke aanvraagmail bevat de regel "In mijn agenda zetten". Klik erop, controleer en sla op; binnen een kwartier is dat moment op de site bezet.
 - **Formulier:** verstuurt via FormSubmit naar de anonieme code in `assets/afspraak-config.js`. Mails van FormSubmit kunnen in Ongewenste e-mail belanden: markeer `submissions@formsubmit.co` als veilige afzender.
 - **Agendakoppeling stoppen:** Outlook → Instellingen → Agenda → Gedeelde agenda's → publicatie ongedaan maken, en het geheim in GitHub verwijderen.
+
+## Aanvragen verwerken op je laptop
+Het programma in `laptop/` handelt aanvragen af zolang je laptop aan staat en je bent ingelogd:
+1. Nieuwe aanvraag → het moment komt als **voorlopig** in je agenda (binnen een kwartier bezet op de site) en je krijgt een mail "Nieuwe aanvraag" met twee knoppen.
+2. **Accepteren** → de afspraak wordt definitief; de bezoeker krijgt een uitnodiging (bevestiging + herinnering), bij Teams met Teams-link.
+3. **Ander moment voorstellen** → het voorlopige blok verdwijnt en er opent een mail aan de bezoeker.
+
+Staat je laptop uit, dan wachten de aanvragen gewoon; ze worden verwerkt zodra je weer inlogt.
+
+**Eenmalig installeren** (PowerShell, in de map van de website):
+```
+powershell -ExecutionPolicy Bypass -File .\laptop\installeren.ps1
+```
+Je logt één keer in met dave@resultop.nl en geeft toestemming voor e-mail en agenda. Er wordt geen API-sleutel of wachtwoord opgeslagen.
+
+- Logboek: `%LOCALAPPDATA%\ResultOP\logboek.txt`
+- Stoppen en verwijderen: `powershell -ExecutionPolicy Bypass -File .\laptop\verwijderen.ps1`
+- De knoppen werken alleen op je laptop, terwijl het programma draait.
