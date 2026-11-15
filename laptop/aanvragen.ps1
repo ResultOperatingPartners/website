@@ -208,6 +208,8 @@ function Behandel-Verzoek($ctx, $status) {
 
 # ---- Start -----------------------------------------------------------------
 Import-Module Microsoft.Graph.Authentication
+# Inloggen via de gewone browser (het Windows-inlogvenster verdwijnt soms achter andere vensters)
+Set-MgGraphOption -DisableLoginByWAM $true
 Connect-MgGraph -Scopes 'Mail.ReadWrite', 'Mail.Send', 'Calendars.ReadWrite' -NoWelcome
 Log 'Gestart'
 

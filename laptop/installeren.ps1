@@ -11,11 +11,14 @@ if (-not (Get-Module -ListAvailable Microsoft.Graph.Authentication)) {
     Install-Module Microsoft.Graph.Authentication -Scope CurrentUser -Force -AllowClobber
 }
 Import-Module Microsoft.Graph.Authentication
+# Inloggen via de gewone browser (het Windows-inlogvenster verdwijnt soms achter andere vensters)
+Set-MgGraphOption -DisableLoginByWAM $true
 
 Write-Host "2/3  Inloggen met je Microsoft-account (dave@resultop.nl)..." -ForegroundColor Cyan
-Write-Host "     Er opent een inlogvenster. Geef toestemming voor: e-mail lezen/versturen en agenda beheren." -ForegroundColor Gray
+Write-Host "     Je browser opent met een Microsoft-inlogpagina. Log in en geef toestemming voor e-mail en agenda." -ForegroundColor Gray
 Connect-MgGraph -Scopes 'Mail.ReadWrite', 'Mail.Send', 'Calendars.ReadWrite' -NoWelcome
 $ik = (Get-MgContext).Account
+if (-not $ik) { Write-Host "`nInloggen is niet gelukt. Start dit script opnieuw." -ForegroundColor Red; exit 1 }
 Write-Host "     Ingelogd als $ik" -ForegroundColor Green
 
 Write-Host "3/3  Automatisch starten bij inloggen instellen..." -ForegroundColor Cyan
