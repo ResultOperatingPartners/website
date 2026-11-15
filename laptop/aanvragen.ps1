@@ -88,8 +88,34 @@ function Nieuw-Token {
 $script:bijwerkenOm = @()
 function Plan-Sitebijwerking {
     # Nu (na een minuut) en nog eens na 6 minuten: Outlook werkt de gepubliceerde agenda met wat vertraging bij.
-    $script:bijwerkenOm += (Get-Date).AddSeconds(60)
-    $script:bijwerkenOm += (Get-Date).AddMinutes(6)
+    # Nog eens na 15 minuten voor de zekerheid. Momenten die vlak bij een al geplande keer liggen, slaan we over.
+    foreach ($m in @((Get-Date).AddSeconds(60), (Get-Date).AddMinutes(6), (Get-Date).AddMinutes(15))) {
+        $dichtbij = $script:bijwerkenOm | Where-Object { [math]::Abs(($_ - $m).TotalSeconds) -lt 150 }
+        if (-not $dichtbij) { $script:bijwerkenOm += $m }
+    }
+}
+
+# ---- Eigen agendawijzigingen opmerken (afspraak erbij, weg of verzet) -------
+$script:vorigeAgenda = $null
+function Controleer-Agenda {
+    $van = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
+    $tot = (Get-Date).ToUniversalTime().AddDays(120).ToString('yyyy-MM-ddTHH:mm:ssZ')
+    $pad = "/me/calendarView?startDateTime=$van&endDateTime=$tot&`$select=id,start,end,showAs,isCancelled&`$top=999"
+    $regels = @()
+    while ($pad) {
+        $res = Graph GET $pad $null
+        foreach ($e in $res.value) {
+            $regels += "$($e.id)|$($e.start.dateTime)|$($e.end.dateTime)|$($e.showAs)|$($e.isCancelled)"
+        }
+        $volgendeLink = $res.'@odata.nextLink'
+        $pad = if ($volgendeLink) { $volgendeLink -replace '^https://graph.microsoft.com/v1.0', '' } else { $null }
+    }
+    $afdruk = (($regels | Sort-Object) -join "`n")
+    if ($null -ne $script:vorigeAgenda -and $afdruk -ne $script:vorigeAgenda) {
+        Log 'Agenda gewijzigd'
+        Plan-Sitebijwerking
+    }
+    $script:vorigeAgenda = $afdruk
 }
 function Werk-SiteBij {
     if (-not (Test-Path $SleutelBestand)) { return }
@@ -251,6 +277,8 @@ try {
         if ((Get-Date) -ge $volgende) {
             try { Controleer-Mailbox $status; Bewaar-Status $status }
             catch { Log "Fout bij controleren: $($_.Exception.Message)" }
+            try { Controleer-Agenda }
+            catch { Log "Fout bij agenda controleren: $($_.Exception.Message)" }
             $volgende = (Get-Date).AddSeconds($ControleerElk)
         }
         if ($script:bijwerkenOm.Count -gt 0 -and (Get-Date) -ge ($script:bijwerkenOm | Sort-Object | Select-Object -First 1)) {
