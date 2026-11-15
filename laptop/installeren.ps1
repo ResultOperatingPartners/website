@@ -23,9 +23,12 @@ Write-Host "     Ingelogd als $ik" -ForegroundColor Green
 
 Write-Host "3/3  Automatisch starten bij inloggen instellen..." -ForegroundColor Cyan
 $naam = 'Result OP - aanvragen'
-$actie = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$script`""
+$vbs = Join-Path $PSScriptRoot 'start-verborgen.vbs'
+$actie = New-ScheduledTaskAction -Execute 'wscript.exe' -Argument "`"$vbs`""
 $trigger = New-ScheduledTaskTrigger -AtLogOn -User "$env:USERDOMAIN\$env:USERNAME"
 $inst = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit ([TimeSpan]::Zero) -RestartCount 99 -RestartInterval (New-TimeSpan -Minutes 1) -MultipleInstances IgnoreNew
+# Een eventueel draaiende oude versie (met zichtbaar venster) stoppen
+Get-CimInstance Win32_Process -Filter "Name='powershell.exe'" | Where-Object { $_.CommandLine -like '*aanvragen.ps1*' -and $_.ProcessId -ne $PID } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }
 Register-ScheduledTask -TaskName $naam -Action $actie -Trigger $trigger -Settings $inst -Description 'Verwerkt aanvragen van resultop.nl' -Force | Out-Null
 Start-ScheduledTask -TaskName $naam
 
