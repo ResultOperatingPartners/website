@@ -22,6 +22,10 @@ GitHub werkt op deze computer.
 ## Bewerken
 
 - **Tekst**: klik erop en typ. Het verandert meteen op het scherm.
+  Enter geeft een nieuwe regel binnen hetzelfde blok; plakken gaat altijd
+  als platte tekst. De knoppen en scripts van de site staan in de editor
+  uit, zodat bijvoorbeeld ook de laatste stap van het afspraakformulier
+  te bewerken is.
 - **Lettergrootte**: selecteer een tekst, gebruik de A− / A+ knoppen
   in de zwevende werkbalk die verschijnt.
 - **Breedte van een blok**: ↔− / ↔+ in diezelfde werkbalk.
