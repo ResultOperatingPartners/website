@@ -31,6 +31,7 @@ $Repo          = 'ResultOperatingPartners/website'
 # ---------------------------------------------------------------------------
 
 New-Item -ItemType Directory -Force -Path $Map | Out-Null
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
 function Log($tekst) {
     $regel = '{0:yyyy-MM-dd HH:mm:ss}  {1}' -f (Get-Date), $tekst

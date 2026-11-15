@@ -26,12 +26,37 @@ Write-Host "     Ingelogd als $ik" -ForegroundColor Green
 Write-Host "3/4  GitHub-sleutel (laat de site direct bijwerken na een nieuwe afspraak)..." -ForegroundColor Cyan
 $map = Join-Path $env:LOCALAPPDATA 'ResultOP'; New-Item -ItemType Directory -Force -Path $map | Out-Null
 $sleutelBestand = Join-Path $map 'github-sleutel.txt'
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+function Test-Sleutel($t) {
+    try {
+        Invoke-RestMethod -Uri 'https://api.github.com/repos/ResultOperatingPartners/website/actions/workflows/pages.yml' `
+            -Headers @{ Authorization = "Bearer $t"; Accept = 'application/vnd.github+json' } | Out-Null
+        return $null
+    } catch { return $_.Exception.Message }
+}
 if ($NieuweSleutel -or -not (Test-Path $sleutelBestand)) {
-    $s = Read-Host '     Plak de GitHub-sleutel (begint met github_pat_) en druk op Enter, of druk alleen op Enter om over te slaan' -AsSecureString
-    if ($s.Length -gt 0) {
-        $s | ConvertFrom-SecureString | Set-Content -Path $sleutelBestand
-        Write-Host '     Sleutel versleuteld opgeslagen.' -ForegroundColor Green
-    } else { Write-Host '     Overgeslagen: de site wordt dan elk uur bijgewerkt.' -ForegroundColor Yellow }
+    # Via het klembord: plakken in een verborgen invoerveld gaat in PowerShell vaak (half) mis.
+    Write-Host '     Kopieer de GitHub-sleutel (begint met github_pat_) en druk dan hier op Enter.' -ForegroundColor Gray
+    Write-Host '     Druk op S en Enter om over te slaan.' -ForegroundColor Gray
+    $keuze = Read-Host '    '
+    if ($keuze -match '^[sS]') {
+        Write-Host '     Overgeslagen: de site wordt dan elk uur bijgewerkt.' -ForegroundColor Yellow
+    } else {
+        $t = ([string](Get-Clipboard -Raw)).Trim()
+        if ($t -notmatch '^github_pat_[A-Za-z0-9_]{40,}$') {
+            Write-Host "     Op het klembord staat geen volledige GitHub-sleutel ($($t.Length) tekens). Kopieer hem opnieuw en start dit script nog eens met -NieuweSleutel." -ForegroundColor Red
+            exit 1
+        }
+        $fout = Test-Sleutel $t
+        if ($fout) {
+            Write-Host "     GitHub accepteert deze sleutel niet: $fout" -ForegroundColor Red
+            exit 1
+        }
+        ConvertTo-SecureString $t -AsPlainText -Force | ConvertFrom-SecureString | Set-Content -Path $sleutelBestand -NoNewline
+        Set-Clipboard -Value ' '   # sleutel van het klembord halen
+        $t = $null
+        Write-Host '     Sleutel werkt en is versleuteld opgeslagen (klembord gewist).' -ForegroundColor Green
+    }
 } else { Write-Host '     Sleutel is al opgeslagen.' -ForegroundColor Green }
 
 Write-Host "4/4  Automatisch starten bij inloggen instellen..." -ForegroundColor Cyan
