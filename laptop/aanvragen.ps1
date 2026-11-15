@@ -191,15 +191,131 @@ $(Details-Html $d)
 function Pagina($titel, $tekst) {
     @"
 <!DOCTYPE html><html lang="nl"><head><meta charset="utf-8"><title>$(Html $titel)</title>
-<style>body{font-family:Segoe UI,Arial,sans-serif;background:#14213d;color:#fff;display:grid;place-items:center;min-height:100vh;margin:0}
-main{background:#fff;color:#14213d;border-radius:12px;padding:36px 40px;max-width:560px}h1{margin-top:0}a{color:#14213d;font-weight:700}</style>
+<style>body{font-family:Segoe UI,Arial,sans-serif;background:#14213d;color:#fff;display:grid;place-items:center;min-height:100vh;margin:0;padding:24px 0}
+main{background:#fff;color:#14213d;border-radius:12px;padding:36px 40px;max-width:680px}h1{margin-top:0}a{color:#14213d;font-weight:700}
+.dag{margin:18px 0 8px;font-weight:700;text-transform:capitalize}.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips label{border:1.5px solid #c8ced8;border-radius:999px;padding:6px 12px;cursor:pointer;font-size:14px}
+.chips label:has(input:checked){border-color:#14213d;background:#14213d;color:#fff}.chips input{margin:0 6px 0 0}
+textarea{width:100%;box-sizing:border-box;min-height:90px;font:inherit;padding:10px;border:1.5px solid #c8ced8;border-radius:8px}
+button{margin-top:18px;padding:12px 24px;border:0;border-radius:999px;background:#c9a227;color:#14213d;font-weight:700;font-size:15px;cursor:pointer}
+.klein{color:#5d6878;font-size:13px}.fout{color:#a4262c;font-weight:700}</style>
 </head><body><main><h1>$(Html $titel)</h1>$tekst</main></body></html>
+"@
+}
+
+# ---- Vrije momenten volgens de instellingen van de site + je agenda ---------
+$NL = [System.Globalization.CultureInfo]::GetCultureInfo('nl-NL')
+function Lees-Instellingen {
+    $c = @{ blokken = @{ 5 = @(, @(540, 1020)) }; duur = 30; stap = 30; vooraf = 24; dagen = 60; uit = @() }
+    $pad = Join-Path $PSScriptRoot '..\assets\afspraak-config.js'
+    if (-not (Test-Path $pad)) { return $c }
+    $txt = ((Get-Content $pad -Encoding UTF8) | Where-Object { $_ -notmatch '^\s*//' }) -join "`n"
+    $namen = 'zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag'
+    $blokken = @{}
+    for ($i = 0; $i -lt 7; $i++) {
+        $m = [regex]::Match($txt, "(?m)^\s*$($namen[$i])\s*:\s*\[(.*)\]")
+        if (-not $m.Success) { continue }
+        $lijst = @()
+        foreach ($p in [regex]::Matches($m.Groups[1].Value, "'(\d\d):(\d\d)'\s*,\s*'(\d\d):(\d\d)'")) {
+            $lijst += , @(([int]$p.Groups[1].Value * 60 + [int]$p.Groups[2].Value), ([int]$p.Groups[3].Value * 60 + [int]$p.Groups[4].Value))
+        }
+        if ($lijst.Count) { $blokken[$i] = $lijst }
+    }
+    if ($blokken.Count) { $c.blokken = $blokken }
+    foreach ($k in @(@('duur', 'duurMinuten'), @('stap', 'stapMinuten'), @('vooraf', 'minimaalUrenVooraf'), @('dagen', 'maximaalDagenVooruit'))) {
+        $m = [regex]::Match($txt, "$($k[1])\s*:\s*(\d+)")
+        if ($m.Success) { $c[$k[0]] = [int]$m.Groups[1].Value }
+    }
+    $m = [regex]::Match($txt, 'nietBeschikbaar\s*:\s*\[([\s\S]*?)\]')
+    if ($m.Success) { $c.uit = @([regex]::Matches($m.Groups[1].Value, '\d{4}-\d{2}-\d{2}') | ForEach-Object { $_.Value }) }
+    return $c
+}
+
+function Vrije-Momenten($negeerEventId, $origineel) {
+    $c = Lees-Instellingen
+    $van = (Get-Date).Date
+    $tot = $van.AddDays($c.dagen + 1)
+    $uri = 'https://graph.microsoft.com/v1.0/me/calendarView?startDateTime=' + $van.ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ') +
+           '&endDateTime=' + $tot.ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ') + '&$select=id,start,end,showAs,isCancelled&$top=999'
+    $bezet = @()
+    while ($uri) {
+        $res = Invoke-MgGraphRequest -Method GET -Uri $uri -Headers @{ Prefer = "outlook.timezone=`"$TijdZone`"" }
+        foreach ($e in $res.value) {
+            if ($e.id -eq $negeerEventId -or $e.isCancelled -or $e.showAs -eq 'free') { continue }
+            $bezet += , @([datetime]::Parse($e.start.dateTime, [cultureinfo]::InvariantCulture), [datetime]::Parse($e.end.dateTime, [cultureinfo]::InvariantCulture))
+        }
+        $uri = $res.'@odata.nextLink'
+    }
+    $vroegst = (Get-Date).AddHours($c.vooraf)
+    $uit = @()
+    for ($i = 0; $i -le $c.dagen; $i++) {
+        $dag = $van.AddDays($i)
+        if ($c.uit -contains $dag.ToString('yyyy-MM-dd')) { continue }
+        $blok = $c.blokken[[int]$dag.DayOfWeek]
+        if (-not $blok) { continue }
+        foreach ($b in $blok) {
+            for ($s = $b[0]; $s + $c.duur -le $b[1]; $s += $c.stap) {
+                $begin = $dag.AddMinutes($s); $eind = $begin.AddMinutes($c.duur)
+                if ($begin -lt $vroegst -or $begin -eq $origineel) { continue }
+                $vrij = $true
+                foreach ($x in $bezet) { if ($x[0] -lt $eind -and $x[1] -gt $begin) { $vrij = $false; break } }
+                if ($vrij) { $uit += [pscustomobject]@{ start = $begin; eind = $eind } }
+            }
+        }
+    }
+    return $uit
+}
+
+function Moment-Tekst($begin, $eind) {
+    return $begin.ToString('dddd d MMMM', $NL) + ', ' + $begin.ToString('HH:mm') + ' - ' + $eind.ToString('HH:mm') + ' uur'
+}
+
+function Keuze-Pagina($id, $t, $d, $opties, $melding) {
+    $r = "<p>Kies een of meer momenten die je <b>$(Html $d.naam)</b> wilt voorstellen in plaats van $(Html $d.moment). " +
+         "$(Html $d.naam) krijgt daarna automatisch een nette mail met deze momenten.</p>"
+    if ($melding) { $r += "<p class='fout'>$(Html $melding)</p>" }
+    if (-not $opties.Count) {
+        return $r + "<p>Er zijn geen vrije momenten gevonden binnen de periode die de site toont. Pas je beschikbaarheid aan of mail $(Html $d.naam) zelf: <a href='mailto:$(Html $d.email)'>$(Html $d.email)</a>.</p>"
+    }
+    $r += "<form method='post' action='/ander-moment'><input type='hidden' name='id' value='$(Html $id)'><input type='hidden' name='t' value='$(Html $t)'>"
+    foreach ($groep in ($opties | Group-Object { $_.start.Date })) {
+        $r += "<div class='dag'>$(Html ($groep.Group[0].start.ToString('dddd d MMMM', $NL)))</div><div class='chips'>"
+        foreach ($o in $groep.Group) {
+            $r += "<label><input type='checkbox' name='keuze' value='$($o.start.ToString('yyyy-MM-ddTHH:mm'))'>$($o.start.ToString('HH:mm'))</label>"
+        }
+        $r += '</div>'
+    }
+    $r += "<p class='dag' style='text-transform:none'>Persoonlijke toevoeging (optioneel)</p><textarea name='opmerking' placeholder='Bijvoorbeeld: Vrijdagochtend heeft mijn voorkeur.'></textarea>"
+    $r += "<button type='submit'>Verstuur voorstel aan $(Html $d.naam)</button>"
+    $r += "<p class='klein'>Het voorlopige blok voor $(Html $d.moment) wordt daarbij uit je agenda gehaald.</p></form>"
+    return $r
+}
+
+function Voorstel-Mail($d, $momenten, $opmerking) {
+    $soort = if ($d.soort -eq 'teams') { 'een Teams-gesprek' } else { 'een telefonische kennismaking' }
+    $lijst = ($momenten | ForEach-Object { "<li style='margin:4px 0'>$(Html (Moment-Tekst $_.start $_.eind))</li>" }) -join ''
+    $extra = if ($opmerking) { "<p>$((Html $opmerking) -replace "`r?`n", '<br>')</p>" } else { '' }
+    $vraag = if ($momenten.Count -gt 1) { 'Laat je weten welk moment je het beste uitkomt?' } else { 'Laat je weten of dit moment je uitkomt?' }
+    return @"
+<div style="font-family:Segoe UI,Arial,sans-serif;color:#14213d;font-size:15px;line-height:1.55">
+<p>Beste $(Html $d.naam),</p>
+<p>Dank voor je aanvraag voor $soort. Het moment dat je koos, $(Html $d.moment), kan ik helaas niet vrijmaken. Graag stel ik een ander moment voor:</p>
+<ul style="padding-left:20px">$lijst</ul>
+$extra
+<p>$vraag Een kort antwoord op deze mail is voldoende; je ontvangt daarna een uitnodiging in je agenda.</p>
+<p>Met vriendelijke groet,<br><b>Dave Venmans</b><br>Result Operating Partners<br>06 46 74 85 49<br><a href="https://www.resultop.nl" style="color:#14213d">www.resultop.nl</a></p>
+</div>
 "@
 }
 
 function Behandel-Verzoek($ctx, $status) {
     $req = $ctx.Request
-    $id = $req.QueryString['id']; $t = $req.QueryString['t']
+    $form = $null
+    if ($req.HttpMethod -eq 'POST') {
+        $lezer = New-Object System.IO.StreamReader($req.InputStream, [System.Text.Encoding]::UTF8)
+        $form = [System.Web.HttpUtility]::ParseQueryString($lezer.ReadToEnd())
+        $id = $form['id']; $t = $form['t']
+    } else { $id = $req.QueryString['id']; $t = $req.QueryString['t'] }
     $pad = $req.Url.AbsolutePath
     $html = Pagina 'Onbekende link' '<p>Deze link is ongeldig of al gebruikt.</p>'
 
@@ -234,15 +350,39 @@ function Behandel-Verzoek($ctx, $status) {
             Log "Geaccepteerd: $($d.naam), $($d.moment)"
             $html = Pagina 'Afspraak bevestigd' "<p>De afspraak met <b>$(Html $d.naam)</b> op $(Html $d.moment) staat vast in je agenda. $(Html $d.naam) heeft een uitnodiging ontvangen op $(Html $d.email).</p>"
         }
+        elseif ($pad -eq '/ander-moment' -and $null -eq $form) {
+            # Stap 1: vrije momenten tonen om uit te kiezen
+            $opties = @(Vrije-Momenten $item.eventId ([datetime]$d.start))
+            $html = Pagina 'Ander moment voorstellen' (Keuze-Pagina $id $t $d $opties $null)
+        }
         elseif ($pad -eq '/ander-moment') {
-            try { Graph DELETE ("/me/events/" + $item.eventId) $null | Out-Null } catch { Log "Voorlopig blok niet gevonden: $($_.Exception.Message)" }
-            $item.status = 'ander moment'
-            Plan-Sitebijwerking
-            Log "Ander moment: $($d.naam)"
-            $onderwerp = [uri]::EscapeDataString('Je aanvraag voor een kennismaking')
-            $tekstMail = [uri]::EscapeDataString("Beste $($d.naam),`n`nDank voor je aanvraag voor een kennismaking op $($d.moment). Helaas past dat moment mij niet. Zou een van de volgende momenten wel uitkomen?`n`n- `n- `n`nMet vriendelijke groet,`nDave Venmans`nResult Operating Partners`n06 46 74 85 49")
-            $mailto = "mailto:$($d.email)?subject=$onderwerp&body=$tekstMail"
-            $html = Pagina 'Voorlopig blok verwijderd' "<p>Het moment is weer vrij in je agenda.</p><p><a href=""$mailto"">Mail $(Html $d.naam) een ander moment</a></p>"
+            # Stap 2: gekozen momenten mailen
+            $gekozen = @($form.GetValues('keuze') | Where-Object { $_ })
+            if (-not $gekozen.Count) {
+                $opties = @(Vrije-Momenten $item.eventId ([datetime]$d.start))
+                $html = Pagina 'Ander moment voorstellen' (Keuze-Pagina $id $t $d $opties 'Kies minstens een moment.')
+            } else {
+                $duur = ([datetime]$d.eind - [datetime]$d.start).TotalMinutes
+                if ($duur -le 0) { $duur = 30 }
+                $momenten = @($gekozen | Sort-Object | ForEach-Object {
+                    $b = [datetime]::ParseExact($_, 'yyyy-MM-ddTHH:mm', [cultureinfo]::InvariantCulture)
+                    [pscustomobject]@{ start = $b; eind = $b.AddMinutes($duur) }
+                })
+                Graph POST '/me/sendMail' @{
+                    message = @{
+                        subject = 'Kennismaking Result Operating Partners: voorstel voor een nieuw moment'
+                        body = @{ contentType = 'HTML'; content = (Voorstel-Mail $d $momenten $form['opmerking']) }
+                        toRecipients = @(@{ emailAddress = @{ address = $d.email; name = $d.naam } })
+                    }
+                    saveToSentItems = $true
+                } | Out-Null
+                try { Graph DELETE ("/me/events/" + $item.eventId) $null | Out-Null } catch { Log "Voorlopig blok niet gevonden: $($_.Exception.Message)" }
+                $item.status = 'ander moment voorgesteld'
+                Plan-Sitebijwerking
+                Log "Ander moment voorgesteld aan $($d.naam): $($momenten.Count) moment(en)"
+                $lijst = ($momenten | ForEach-Object { "<li>$(Html (Moment-Tekst $_.start $_.eind))</li>" }) -join ''
+                $html = Pagina 'Voorstel verstuurd' "<p>$(Html $d.naam) heeft een mail gekregen op $(Html $d.email) met:</p><ul>$lijst</ul><p>Het voorlopige blok is uit je agenda gehaald. De mail staat in je Verzonden items; het antwoord komt gewoon in je inbox.</p>"
+            }
         }
         Bewaar-Status $status
     }
@@ -259,6 +399,7 @@ function Behandel-Verzoek($ctx, $status) {
 }
 
 # ---- Start -----------------------------------------------------------------
+Add-Type -AssemblyName System.Web
 Import-Module Microsoft.Graph.Authentication
 # Inloggen via de gewone browser (het Windows-inlogvenster verdwijnt soms achter andere vensters)
 Set-MgGraphOption -DisableLoginByWAM $true
