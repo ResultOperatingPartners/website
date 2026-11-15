@@ -93,7 +93,8 @@ function Plan-Sitebijwerking {
 function Werk-SiteBij {
     if (-not (Test-Path $SleutelBestand)) { return }
     try {
-        $veilig = Get-Content $SleutelBestand -Raw | ConvertTo-SecureString
+        # Trim: het bestand eindigt met een regeleinde, daar struikelt ConvertTo-SecureString over
+        $veilig = (Get-Content $SleutelBestand -Raw).Trim() | ConvertTo-SecureString
         $sleutel = [System.Net.NetworkCredential]::new('', $veilig).Password
         Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/$Repo/actions/workflows/pages.yml/dispatches" `
             -Headers @{ Authorization = "Bearer $sleutel"; Accept = 'application/vnd.github+json'; 'X-GitHub-Api-Version' = '2022-11-28' } `
