@@ -29,7 +29,7 @@ jobs:
         run: |
           mkdir _site
           cp index.html 404.html robots.txt sitemap.xml llms.txt afspraak.html privacy.html _site/
-          cp -r afspraak privacy interimmers assets .well-known _site/
+          cp -r afspraak privacy interimmers result-scan fractional-coo interim-management private-equity professional-service-firms over-ons assets .well-known _site/
       - name: Bezette momenten uit de agenda
         env:
           AGENDA_ICS_URL: ${{ secrets.AGENDA_ICS_URL }}
